@@ -1,1 +1,1 @@
-HEY
+This is a RawLapse App
