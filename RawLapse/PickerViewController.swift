@@ -81,7 +81,7 @@ class PickerViewController: UIViewController , UIPickerViewDelegate , UIPickerVi
             }
             else{
                 print(pickerViewList2[row])
-                if(pickerViewList2[row] == "Bulb"){
+                if(pickerViewList2[row] == "BULB"){
                     continuous = true
                 }else{
                     continuous = false
