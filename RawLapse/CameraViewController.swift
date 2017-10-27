@@ -134,13 +134,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             photoOutput = AVCapturePhotoOutput()
             let rawFormatType = kCVPixelFormatType_14Bayer_RGGB
             photoSettings = AVCapturePhotoSettings(rawPixelFormatType: rawFormatType)
-//            let newShutter = CMTimeMultiply(AVCaptureDevice.currentExposureDuration, 0.5)
-//            print("Scale \(AVCaptureDevice.currentExposureDuration.timescale)")
-            let newShutter = CMTime(seconds: 1/2, preferredTimescale: 0)
             try? currentCamera?.lockForConfiguration()
-            currentCamera?.setExposureModeCustom(duration:   newShutter , iso: AVCaptureDevice.currentISO, completionHandler: { (cmtime) in
-//
-            })
+            currentCamera?.exposureMode = .continuousAutoExposure
             currentCamera?.unlockForConfiguration()
             let preferedThumbnailFormat = photoSettings?.availableEmbeddedThumbnailPhotoCodecTypes.first
             photoSettings?.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
