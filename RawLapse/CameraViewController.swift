@@ -48,6 +48,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var continuous: Bool?
 
     var buttonsSet = false
+    var startBrightness : CGFloat?
     
     
     var uuid: String?
@@ -186,7 +187,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func updateLabels(){
         if let camera = currentCamera {
-            settingsTextView.text = "ISO: \(Int(camera.iso))\nShutter: 1/\(Int(1 / (camera.exposureDuration).seconds))"
+            settingsTextView.text = "ISO: \(Int(camera.iso))\nShutter: 1/\(Int(1 / (camera.exposureDuration).seconds))\nEV:\(camera.exposureTargetBias)"
             if pickerViewController.continuous  {
             photoCounterLabel.text = "\(photoCounter)/∞"
             }
@@ -250,19 +251,64 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
+    @objc func handleSwiping(_ swipe: UISwipeGestureRecognizer){
+        try? currentCamera?.lockForConfiguration()
+        let newExposureBias = swipe.direction == .left ? currentCamera!.exposureTargetBias - 1 : currentCamera!.exposureTargetBias + 1
+        if newExposureBias > -6 && newExposureBias < 6{
+            currentCamera?.setExposureTargetBias(newExposureBias, completionHandler: { (time) in
+                self.updateLabels()
+            })
+        }
+        currentCamera?.unlockForConfiguration()
+    }
+    
+    
+//    get preview by putting your hand
+    func activateProximitySensor(){
+        let device = UIDevice.current
+        device.isProximityMonitoringEnabled = true
+        NotificationCenter.default.addObserver(self, selector: #selector(adjustBrightness), name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
+        
+    }
+    @objc func adjustBrightness(notification: NSNotification){
+        let device = notification.object as? UIDevice
+        if device?.proximityState == true && activeTimelapse == true{
+            UIScreen.main.brightness = 1.0
+            Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { (timer) in
+                UIScreen.main.brightness = 0.0
+                
+            })
+            
+        }
+    }
+    
+    
+   
     
     override func viewDidLoad() {
         super.viewDidLoad()
          self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingTap(_:))))
+        let leftSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
+        leftSwipeRecognizer.direction = .left
+        let rightSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
+        rightSwipeRecognizer.direction = .right
+        
+        self.view.addGestureRecognizer(leftSwipeRecognizer)
+        self.view.addGestureRecognizer(rightSwipeRecognizer)
+        
+        
+        
         checkCameraAuthorization { (error) in
             
         }
+        
         checkPhotoLibraryAuthorization { (error) in
             
         }
         addingView()
         setupPortraitUi()
-        
+        startBrightness = UIScreen.main.brightness
+        activateProximitySensor()
         setupCaptureSession()
         setupDevice()
         setupInputOutput()
@@ -271,27 +317,31 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
     }
     
+    
+    
     @objc func startTimelapse(){
         
         self.amountOfPhotos = pickerViewController.amountOfPhotos
         self.secondInterval = pickerViewController.secondInterval
         self.continuous = pickerViewController.continuous
-
+        let currentScreenBrightness = UIScreen.main.brightness
+        print("timelapse called")
+        startBrightness = UIScreen.main.brightness
+        UIScreen.main.brightness = 0.0
         if(activeTimelapse == false){
             activeTimelapse = true;
             shutterButton.tintColor = UIColor.red
 //            how to use the timer
             timelapseTimer =  Timer.scheduledTimer(withTimeInterval: TimeInterval(secondInterval!), repeats: true) { (timer) in
-                print("in timer")
                 
                 if(self.photoCounter <= self.amountOfPhotos! || self.continuous!){
-                    print("take photo")
                 self.takePhoto()
                 self.photoCounter += 1;
                 self.updateLabels()
             }
             else{
                     self.timelapseTimer?.invalidate();
+                    UIScreen.main.brightness = currentScreenBrightness
                  return;
             }
         }
@@ -301,6 +351,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             timelapseTimer?.invalidate();
             return ;
         }
+        
     }
 
 
