@@ -9,13 +9,12 @@
 import UIKit
 
 class Hud: UIView {
-//    refernce to delagate and data source must be at the top / file level
+    //    reference to delagate and data source must be at the top / file level
     var pickerController: PickerViewController?
     
     var secondInterval: Int?
     var amountOfPhotos: Int?
     var continuous: Bool?
-    
     
     let testButton:UIButton = {
         let button = UIButton()
@@ -23,7 +22,7 @@ class Hud: UIView {
         var image = UIImage(named: "pictures_icon")
         button.setBackgroundImage(image, for: .normal)
         button.contentMode = .scaleAspectFit
-       return button
+        return button
     }()
     
     let picturesIconImageView : UIImageView = {
@@ -62,34 +61,25 @@ class Hud: UIView {
         self.addSubview(pickerView1)
         self.addSubview(pickerView2)
         
-        
         picturesIconImageView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 16).isActive = true
         picturesIconImageView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
         picturesIconImageView.widthAnchor.constraint(equalToConstant: 44).isActive = true
         picturesIconImageView.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        
-        
         
         pickerView1.leftAnchor.constraint(equalTo: picturesIconImageView.rightAnchor , constant:8).isActive = true
         pickerView1.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
         pickerView1.widthAnchor.constraint(equalToConstant: 80).isActive = true
         pickerView1.heightAnchor.constraint(equalToConstant: 50).isActive = true
         
-        
         testButton.leftAnchor.constraint(equalTo: pickerView1.rightAnchor, constant: 16).isActive = true
         testButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: 0).isActive = true
         testButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
         testButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
         
-        
-        
         pickerView2.leftAnchor.constraint(equalTo: testButton.rightAnchor , constant: 16).isActive = true
         pickerView2.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
         pickerView2.widthAnchor.constraint(equalToConstant: 80).isActive = true
         pickerView2.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        
-        
-        
         
     }
     class func hud(inView view: UIView) -> Hud{
@@ -99,13 +89,13 @@ class Hud: UIView {
         let y:Double = Double(view.frame.minY + CGFloat(40))
         let frame = CGRect(x: x, y: y, width: width, height: height)
         let hudView = Hud(frame: frame)
-//        hudView.setupInsideHud()
+        //        hudView.setupInsideHud()
         hudView.isOpaque = false
         hudView.backgroundColor = UIColor.black
         hudView.alpha = 0.6
         hudView.layer.cornerRadius = 20
         hudView.layer.masksToBounds = true
-       hudView.animateIn()
+        hudView.animateIn()
         view.addSubview(hudView)
         
         return hudView
@@ -124,9 +114,6 @@ class Hud: UIView {
         UIView.animate(withDuration: 1, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: [], animations: {
             self.alpha = 0.9
         }, completion: nil)
-        
-        
     }
     
-        
-    }
+}

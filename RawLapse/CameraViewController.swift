@@ -13,16 +13,17 @@ import AVFoundation
 
 class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     /*
-    Select a camera input.
-    Create and configure a photo capture output.
-    Configure the capture session by adding the camera input and the capture output.
-    Optionally create and attach a preview view.
-    Start the capture session.
-    
+     Select a camera input.
+     Create and configure a photo capture output.
+     Configure the capture session by adding the camera input and the capture output.
+     Optionally create and attach a preview view.
+     Start the capture session.
+     
      */
-//    data source Reference
+    
+    //    data source Reference
     let pickerViewController = PickerViewController()
-//    camera Settings
+    //    camera Settings
     var captureSession = AVCaptureSession()
     var currentCamera: AVCaptureDevice?
     var photoOutput: AVCapturePhotoOutput?
@@ -31,12 +32,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var cameraPreviewLayerFrame: CGRect?
     var rawPhotoData: Data?
     
-//    hud
+    //    hud
     var hudActive = false
     var hudView: Hud?
     var blackOutView: UIView?
-
-//    timelapse settings
+    
+    //    timelapse settings
     var timelapseTimer: Timer?
     var photoCounter = 0
     var activeTimelapse = false
@@ -46,10 +47,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var secondInterval: Int?
     var amountOfPhotos: Int?
     var continuous: Bool?
-
-    var buttonsSet = false
-    var startBrightness : CGFloat?
     
+    var buttonsSet = false
+    
+    var startBrightness : CGFloat?
     
     var uuid: String?
     
@@ -73,10 +74,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         tv.translatesAutoresizingMaskIntoConstraints = false
         return tv
     }()
-
-
+    
     override var prefersStatusBarHidden: Bool {
         return true
+    }
+    
+    override var shouldAutorotate: Bool{
+        return false
     }
     
     let hudButton:UIButton = {
@@ -105,7 +109,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
     }()
     
-    
     let photoCounterLabel: UILabel = {
         let label = UILabel()
         label.backgroundColor = UIColor.clear
@@ -114,12 +117,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
-
+    
+    
     func setupCaptureSession(){
         captureSession.sessionPreset = AVCaptureSession.Preset.photo
         
     }
+    
     func setupDevice(){
         let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
         let device = deviceDiscoverySession.devices.first
@@ -135,9 +139,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             let rawFormatType = kCVPixelFormatType_14Bayer_RGGB
             photoSettings = AVCapturePhotoSettings(rawPixelFormatType: rawFormatType)
             try? currentCamera?.lockForConfiguration()
-            currentCamera?.exposureMode = .continuousAutoExposure
-//            forces maximum shutter speed for best lowlight
+            
+            //            forces maximum shutter speed for best lowlight
             currentCamera?.setExposureModeCustom(duration: currentCamera!.activeFormat.maxExposureDuration, iso: currentCamera!.activeFormat.minISO, completionHandler: nil)
+            currentCamera?.exposureMode = .continuousAutoExposure
+            updateLabels()
             currentCamera?.unlockForConfiguration()
             let preferedThumbnailFormat = photoSettings?.availableEmbeddedThumbnailPhotoCodecTypes.first
             photoSettings?.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
@@ -146,9 +152,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             captureSession.addOutput(output)
             
         }catch{
-            print(error)
+            
         }
     }
+    
     func setupPreviewLayer(){
         cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         cameraPreviewLayer?.videoGravity = AVLayerVideoGravity.resizeAspect
@@ -161,8 +168,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         else{
             cameraPreviewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
         }
-        
-        print(self.view.frame)
         
         cameraPreviewLayer?.frame = self.view.frame
         self.view.layer.insertSublayer(cameraPreviewLayer!, at: 0)
@@ -186,13 +191,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         if let camera = currentCamera {
             settingsTextView.text = "ISO: \(Int(camera.iso))\nShutter: 1/\(Int(1 / (camera.exposureDuration).seconds))\nEV:\(camera.exposureTargetBias)"
             if pickerViewController.continuous  {
-            photoCounterLabel.text = "\(photoCounter)/∞"
+                photoCounterLabel.text = "\(photoCounter)/∞"
             }
-        else {
-        photoCounterLabel.text = "\(photoCounter)/\(pickerViewController.amountOfPhotos)"
+            else {
+                photoCounterLabel.text = "\(photoCounter)/\(pickerViewController.amountOfPhotos)"
+            }
+            
         }
-        
-    }
     }
     
     func lockUnlockExposureFocus(toggleExposure exposureToggle:Bool , toggleFocus focusToggle:Bool){
@@ -207,12 +212,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
             if(focusToggle){
                 if(lockedFocus){
-                currentCamera?.focusMode = .locked
-            }else{
-                currentCamera?.focusMode = .continuousAutoFocus
+                    currentCamera?.focusMode = .locked
+                }else{
+                    currentCamera?.focusMode = .continuousAutoFocus
+                }
+                
             }
-            
-        }
             currentCamera?.unlockForConfiguration()
         }
     }
@@ -260,7 +265,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     
-//    get preview by putting your hand
+    //    get preview by putting your hand
     func activateProximitySensor(){
         let device = UIDevice.current
         device.isProximityMonitoringEnabled = true
@@ -280,12 +285,15 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    
-   
+    func keepLabelsUpToDate(){
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { (timer) in
+            self.updateLabels()
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-         self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingTap(_:))))
+        self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingTap(_:))))
         let leftSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
         leftSwipeRecognizer.direction = .left
         let rightSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
@@ -294,17 +302,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         self.view.addGestureRecognizer(leftSwipeRecognizer)
         self.view.addGestureRecognizer(rightSwipeRecognizer)
         
-        
-        
         checkCameraAuthorization { (error) in
-            
         }
-        
         checkPhotoLibraryAuthorization { (error) in
             
         }
-        addingView()
-        setupPortraitUi()
+        
+        addViews()
+        setupUI()
         startBrightness = UIScreen.main.brightness
         activateProximitySensor()
         setupCaptureSession()
@@ -312,10 +317,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         setupInputOutput()
         setupPreviewLayer()
         startRunningCaptureSession()
+        keepLabelsUpToDate()
         
     }
-    
-    
     
     @objc func startTimelapse(){
         
@@ -323,26 +327,25 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         self.secondInterval = pickerViewController.secondInterval
         self.continuous = pickerViewController.continuous
         let currentScreenBrightness = UIScreen.main.brightness
-        print("timelapse called")
         startBrightness = UIScreen.main.brightness
         UIScreen.main.brightness = 0.0
         if(activeTimelapse == false){
             activeTimelapse = true;
             shutterButton.tintColor = UIColor.red
-//            how to use the timer
+            //            how to use the timer
             timelapseTimer =  Timer.scheduledTimer(withTimeInterval: TimeInterval(secondInterval!), repeats: true) { (timer) in
                 
                 if(self.photoCounter <= self.amountOfPhotos! || self.continuous!){
-                self.takePhoto()
-                self.photoCounter += 1;
-                self.updateLabels()
-            }
-            else{
+                    self.takePhoto()
+                    self.photoCounter += 1;
+                    self.updateLabels()
+                }
+                else{
                     self.timelapseTimer?.invalidate();
                     UIScreen.main.brightness = currentScreenBrightness
-                 return;
+                    return;
+                }
             }
-        }
         }else{
             activeTimelapse = false;
             shutterButton.tintColor = UIColor.white
@@ -351,26 +354,24 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         
     }
-
-
+    
     @objc  func takePhoto(){
         
         let uniqueSettings = AVCapturePhotoSettings.init(from: self.photoSettings!)
         self.photoOutput?.capturePhoto(with: uniqueSettings, delegate: self)
-
+        
         
     }
     
     func cachesDirectory() -> URL{
         
         let paths = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
-        print(paths[0])
         return paths[0]
     }
     
     func uniqueURL() -> URL{
         if uuid == nil{
-        uuid = UUID().uuidString
+            uuid = UUID().uuidString
         }
         var appendString = ""
         if(photoCounter < 10){
@@ -380,7 +381,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             appendString = "000\(photoCounter)"
         }
         else if(photoCounter < 1000){
-           appendString = "00\(photoCounter)"
+            appendString = "00\(photoCounter)"
         }else if(photoCounter < 10000){
             appendString = "0\(photoCounter)"
         }else{
@@ -388,7 +389,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         
         let saveString = "IMG-" + uuid! + appendString + ".dng"
-        print(saveString)
         return cachesDirectory().appendingPathComponent(saveString)
         
     }
@@ -398,7 +398,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             self.rawPhotoData = photo.fileDataRepresentation()
         }
     }
-
+    
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
         guard error == nil else{
@@ -406,11 +406,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         
         saveRawWithEmbeddedThumbnail()
-        }
+    }
     
     func saveRawWithEmbeddedThumbnail(){
         self.checkPhotoLibraryAuthorization { (error) in
-        
+            
         }
         
         let dngFileURL = uniqueURL()
@@ -418,8 +418,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             try rawPhotoData!.write(to: dngFileURL, options: [])
             
         }
-        catch let error as NSError{
-            print(error)
+        catch{
             return
         }
         PHPhotoLibrary.shared().performChanges({
@@ -432,9 +431,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }, completionHandler: nil)
         
     }
-    
-    
-    
     
     func checkCameraAuthorization(_ completionHandler: @escaping ((_ authorized: Bool) -> Void)) {
         switch AVCaptureDevice.authorizationStatus(for: AVMediaType.video) {
@@ -481,8 +477,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     
-    
-    
     @objc func handleHud(){
         if hudActive {
             hudView?.animateOut()
@@ -491,19 +485,15 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         else{
             if(hudView == nil){
-            hudView = Hud.hud(inView: self.view)
-            hudView?.setupInsideHud(pickerViewController: pickerViewController)
-            hudActive = true
+                hudView = Hud.hud(inView: self.view)
+                hudView?.setupInsideHud(pickerViewController: pickerViewController)
+                hudActive = true
             }
             else{
                 hudView?.animateIn()
                 hudActive = true
             }
         }
-        
-    }
-    func afterDelay(_ seconds:Double , closure: @escaping () -> ()){
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: closure)
         
     }
     
@@ -540,10 +530,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var lockFocusButtonBottomAnchor: NSLayoutConstraint?
     var lockFocusButtonCenterXAnchor : NSLayoutConstraint?
     
-    
     var settingsLabelTopAnchorConstraint: NSLayoutConstraint?
     var settingsLabelWidthAnchorConstraint:NSLayoutConstraint?
-    var settiongsLabelRightAnchorConstraint: NSLayoutConstraint?
+    var settingsLabelRightAnchorConstraint: NSLayoutConstraint?
     var settingsLabelHeightAnchorConstraint: NSLayoutConstraint?
     
     var photoCounterLabelBottomAnchorConstraint: NSLayoutConstraint?
@@ -551,7 +540,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var photoCounterLabelLeftAnchorConstraint: NSLayoutConstraint?
     var photoCounterLabelHeightAnchorConstraint: NSLayoutConstraint?
     
-    func addingView(){
+    func addViews(){
         if(buttonsSet == false){
             setButtons()
             buttonsSet = true
@@ -566,8 +555,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         bottomBar.addSubview(settingsTextView)
         bottomBar.addSubview(photoCounterLabel)
     }
-    
-    
     
     func setButtons(){
         lockAEButton = UIButton()
@@ -584,20 +571,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         lockFocusButton?.addTarget(self, action: #selector(toggleLockFocusButton), for: .touchUpInside)
         lockFocusButton?.translatesAutoresizingMaskIntoConstraints = false
         
+    }
+    
+    func setupUI(){
         
-    }
-    
-    override var shouldAutorotate: Bool{
-        return false
-    }
-    
-    
-    func setupPortraitUi(){
-    
-       
         slimTopBarBottomAnchor?.isActive = false
         slimTopBarWidthAnchor?.isActive = false
-        
         
         slimTopBarTopAnchor = slimTopBar.topAnchor.constraint(equalTo: self.view.topAnchor , constant:0)
         slimTopBarTopAnchor!.isActive = true
@@ -607,68 +586,63 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         slimTopBarRightAnchor!.isActive = true
         slimTopBarHeightAnchor = slimTopBar.heightAnchor.constraint(equalToConstant: 50)
         slimTopBarHeightAnchor!.isActive = true
-        print(" My constraints \(slimTopBar.constraints)")
-
+        
         hudButton.centerXAnchor.constraint(equalTo: slimTopBar.centerXAnchor).isActive = true
         hudButton.centerYAnchor.constraint(equalTo: slimTopBar.centerYAnchor).isActive = true
         hudButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
         hudButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
+        
         lockAEButtonBottomAnchor?.isActive = false
         lockAEButtonCenterXAnchor?.isActive = false
-
+        
         lockAEButtonLeftAnchor = lockAEButton?.leftAnchor.constraint(equalTo: slimTopBar.leftAnchor, constant: 16)
         lockAEButtonLeftAnchor?.isActive = true
         lockAEButtonCenterYAnchor = lockAEButton?.centerYAnchor.constraint(equalTo: slimTopBar.centerYAnchor)
         lockAEButtonCenterYAnchor?.isActive = true
         lockAEButton?.widthAnchor.constraint(equalToConstant: 44).isActive = true
         lockAEButton?.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
+        
         lockFocusButtonCenterXAnchor?.isActive = false
         lockFocusButtonBottomAnchor?.isActive = false
-
+        
         lockFocusButtonLeftAnchor = lockFocusButton?.leftAnchor.constraint(equalTo: lockAEButton!.rightAnchor)
         lockFocusButtonLeftAnchor?.isActive = true
         lockFocusButtonCenterYAnchor = lockFocusButton?.centerYAnchor.constraint(equalTo: slimTopBar.centerYAnchor)
         lockFocusButtonCenterYAnchor?.isActive = true
         lockFocusButton?.widthAnchor.constraint(equalToConstant: 44).isActive = true
         lockFocusButton?.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
-
-
-
+        
         bottomBarWidthAnchor?.isActive = false
         bottomBarTopAnchor?.isActive = false
         bottomBar.bottomAnchor.constraint(equalTo: self.view.bottomAnchor , constant:0).isActive = true
         bottomBar.rightAnchor.constraint(equalTo: self.view.rightAnchor).isActive = true
-
+        
         bottomBarLeftAnchor = bottomBar.leftAnchor.constraint(equalTo: self.view.leftAnchor)
         bottomBarLeftAnchor?.isActive = true
-
+        
         bottomBarHeightAnchor = bottomBar.heightAnchor.constraint(equalToConstant: 100)
         bottomBarHeightAnchor?.isActive = true
-
+        
         shutterButton.centerXAnchor.constraint(equalTo: bottomBar.centerXAnchor).isActive = true
         shutterButton.centerYAnchor.constraint(equalTo: bottomBar.centerYAnchor).isActive = true
         shutterButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
         shutterButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
-
-        settiongsLabelRightAnchorConstraint?.isActive = false
+        
+        settingsLabelRightAnchorConstraint?.isActive = false
         settingsLabelHeightAnchorConstraint?.isActive = false
-
+        
         settingsTextView.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor).isActive = true
         settingsTextView.leftAnchor.constraint(equalTo: bottomBar.leftAnchor).isActive = true
-
+        
         settingsLabelTopAnchorConstraint =  settingsTextView.topAnchor.constraint(equalTo: bottomBar.topAnchor)
         settingsLabelTopAnchorConstraint?.isActive = true
-
+        
         settingsLabelWidthAnchorConstraint = settingsTextView.widthAnchor.constraint(equalToConstant: 100)
         settingsLabelWidthAnchorConstraint?.isActive = true
-
+        
         photoCounterLabelLeftAnchorConstraint?.isActive = false
         photoCounterLabelHeightAnchorConstraint?.isActive = false
-
+        
         photoCounterLabel.rightAnchor.constraint(equalTo: bottomBar.rightAnchor).isActive = true
         photoCounterLabel.topAnchor.constraint(equalTo: bottomBar.topAnchor).isActive = true
         photoCounterLabelBottomAnchorConstraint =  photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor)
@@ -678,6 +652,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         
     }
-
+    
 }
 
