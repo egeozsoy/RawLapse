@@ -136,6 +136,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             photoSettings = AVCapturePhotoSettings(rawPixelFormatType: rawFormatType)
             try? currentCamera?.lockForConfiguration()
             currentCamera?.exposureMode = .continuousAutoExposure
+//            forces maximum shutter speed for best lowlight
+            currentCamera?.setExposureModeCustom(duration: currentCamera!.activeFormat.maxExposureDuration, iso: currentCamera!.activeFormat.minISO, completionHandler: nil)
             currentCamera?.unlockForConfiguration()
             let preferedThumbnailFormat = photoSettings?.availableEmbeddedThumbnailPhotoCodecTypes.first
             photoSettings?.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
@@ -265,6 +267,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         NotificationCenter.default.addObserver(self, selector: #selector(adjustBrightness), name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
         
     }
+    
     @objc func adjustBrightness(notification: NSNotification){
         let device = notification.object as? UIDevice
         if device?.proximityState == true && activeTimelapse == true{
@@ -351,9 +354,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
 
 
     @objc  func takePhoto(){
-       
+        
         let uniqueSettings = AVCapturePhotoSettings.init(from: self.photoSettings!)
-        photoOutput?.capturePhoto(with: uniqueSettings, delegate: self)
+        self.photoOutput?.capturePhoto(with: uniqueSettings, delegate: self)
+
+        
     }
     
     func cachesDirectory() -> URL{
