@@ -133,6 +133,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             photoOutput = AVCapturePhotoOutput()
             let rawFormatType = kCVPixelFormatType_14Bayer_RGGB
             photoSettings = AVCapturePhotoSettings(rawPixelFormatType: rawFormatType)
+//            let newShutter = CMTimeMultiply(AVCaptureDevice.currentExposureDuration, 0.5)
+//            print("Scale \(AVCaptureDevice.currentExposureDuration.timescale)")
+            let newShutter = CMTime(seconds: 1/2, preferredTimescale: 0)
+            try? currentCamera?.lockForConfiguration()
+            currentCamera?.setExposureModeCustom(duration:   newShutter , iso: AVCaptureDevice.currentISO, completionHandler: { (cmtime) in
+//
+            })
+            currentCamera?.unlockForConfiguration()
             let preferedThumbnailFormat = photoSettings?.availableEmbeddedThumbnailPhotoCodecTypes.first
             photoSettings?.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
             photoOutput?.setPreparedPhotoSettingsArray([photoSettings!], completionHandler: nil)
@@ -179,15 +187,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     func updateLabels(){
         if let camera = currentCamera {
             settingsTextView.text = "ISO: \(Int(camera.iso))\nShutter: 1/\(Int(1 / (camera.exposureDuration).seconds))"
-        }
-        if continuous! {
+            if pickerViewController.continuous  {
             photoCounterLabel.text = "\(photoCounter)/∞"
-            
-        }
+            }
         else {
         photoCounterLabel.text = "\(photoCounter)/\(pickerViewController.amountOfPhotos)"
         }
         
+    }
     }
     
     func lockUnlockExposureFocus(toggleExposure exposureToggle:Bool , toggleFocus focusToggle:Bool){
@@ -212,6 +219,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
+    
     func handleExposureFocusTap(_ tap : UITapGestureRecognizer , changeExposure exposureNotLocked: Bool , changeFocus focusNotLocked:Bool){
         
         if(tap.location(in: self.view).y < (self.view.frame.height - cameraPreviewLayerFrame!.height) / 2 || tap.location(in: self.view).y > (self.view.frame.height - cameraPreviewLayerFrame!.height) / 2 + cameraPreviewLayerFrame!.height ){
@@ -223,7 +231,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             let point = CGPoint(x: x, y: y)
             if(exposureNotLocked){
                 currentCamera?.exposurePointOfInterest = point
-                currentCamera?.exposureMode = .autoExpose
+                currentCamera?.exposureMode = .continuousAutoExposure
+                
             }
             if(focusNotLocked){
                 currentCamera?.focusPointOfInterest = CGPoint(x: x, y: y)
@@ -296,6 +305,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
 
 
     @objc  func takePhoto(){
+       
         let uniqueSettings = AVCapturePhotoSettings.init(from: self.photoSettings!)
         photoOutput?.capturePhoto(with: uniqueSettings, delegate: self)
     }
@@ -308,7 +318,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     func uniqueURL() -> URL{
-        if uuid != nil{
+        if uuid == nil{
         uuid = UUID().uuidString
         }
         var appendString = ""
@@ -326,8 +336,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             appendString = "\(photoCounter)"
         }
         
-        
-        let saveString = uuid! + appendString + ".dng"
+        let saveString = "IMG-" + uuid! + appendString + ".dng"
         print(saveString)
         return cachesDirectory().appendingPathComponent(saveString)
         
@@ -531,8 +540,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         return false
     }
     
-    
-//    constrainst not properly removed, that causes a bug
     
     func setupPortraitUi(){
     
