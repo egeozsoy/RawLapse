@@ -266,11 +266,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     
     //    get preview by putting your hand
-    func activateProximitySensor(){
+    func toggleProximitySensor(){
         let device = UIDevice.current
-        device.isProximityMonitoringEnabled = true
-        NotificationCenter.default.addObserver(self, selector: #selector(adjustBrightness), name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
-        
+        if activeTimelapse{
+            device.isProximityMonitoringEnabled = true
+            NotificationCenter.default.addObserver(self, selector: #selector(adjustBrightness), name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
+        }
+        else{
+            device.isProximityMonitoringEnabled = false
+            NotificationCenter.default.removeObserver(self)
+        }
     }
     
     @objc func adjustBrightness(notification: NSNotification){
@@ -311,7 +316,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         addViews()
         setupUI()
         startBrightness = UIScreen.main.brightness
-        activateProximitySensor()
         setupCaptureSession()
         setupDevice()
         setupInputOutput()
@@ -330,7 +334,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         startBrightness = UIScreen.main.brightness
         UIScreen.main.brightness = 0.0
         if(activeTimelapse == false){
-            activeTimelapse = true;
+            activeTimelapse = true
+            toggleProximitySensor()
             shutterButton.tintColor = UIColor.red
             //            how to use the timer
             timelapseTimer =  Timer.scheduledTimer(withTimeInterval: TimeInterval(secondInterval!), repeats: true) { (timer) in
@@ -343,11 +348,15 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 else{
                     self.timelapseTimer?.invalidate();
                     UIScreen.main.brightness = currentScreenBrightness
+                    self.activeTimelapse = false;
+                    self.shutterButton.tintColor = UIColor.white
+                    self.toggleProximitySensor()
                     return;
                 }
             }
         }else{
             activeTimelapse = false;
+            toggleProximitySensor()
             shutterButton.tintColor = UIColor.white
             timelapseTimer?.invalidate();
             return ;
