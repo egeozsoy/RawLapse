@@ -9,6 +9,9 @@
 import Foundation
 
 /*
+  UIFileSharingEnabled
+ 
+ 
 func handleIsoTooHigh(){
     
     let currentShutter = currentCamera?.exposureDuration

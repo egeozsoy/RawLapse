@@ -11,14 +11,16 @@ import UIKit
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
-    var window: UIWindow?
+    var cameraWindow: UIWindow?
+    var interfaceWindow: UIWindow?
     
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        window = UIWindow(frame: UIScreen.main.bounds)
-        window?.makeKeyAndVisible()
-        window?.rootViewController = CameraViewController()
+        
+        cameraWindow = UIWindow(frame: UIScreen.main.bounds)
+        cameraWindow?.makeKeyAndVisible()
+        cameraWindow?.rootViewController = CameraViewController()
         
         UIApplication.shared.isIdleTimerDisabled = true
         return true
