@@ -333,6 +333,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         checkPhotoLibraryAuthorization { (error) in
             
         }
+//        allows buttons to change orientation
         NotificationCenter.default.addObserver(self, selector: #selector(newOrientation), name: Notification.Name.UIDeviceOrientationDidChange, object: nil)
         
         addViews()
@@ -368,7 +369,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         self.settingsTextView.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
     }
     
+    
     @objc func startTimelapse(){
+        
+        if photoOutput?.availableRawPhotoFileTypes == nil {
+            let alert = UIAlertController(title: "Device not supported",
+                                          message:  "RawLapse only works on devices, that support raw photos",
+                                          preferredStyle: .alert)
+            let okAction = UIAlertAction(title: "Ok", style: .default, handler: nil)
+            alert.addAction(okAction)
+            present(alert, animated: true, completion: nil)
+        }
         
         self.amountOfPhotos = pickerViewController.amountOfPhotos
         self.secondInterval = pickerViewController.secondInterval
