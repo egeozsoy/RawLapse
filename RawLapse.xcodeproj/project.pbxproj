@@ -12,8 +12,6 @@
 		252A73471F9A40C700BBD45A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 252A73451F9A40C700BBD45A /* Main.storyboard */; };
 		252A73491F9A40C700BBD45A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 252A73481F9A40C700BBD45A /* Assets.xcassets */; };
 		252A734C1F9A40C700BBD45A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 252A734A1F9A40C700BBD45A /* LaunchScreen.storyboard */; };
-		252A73571F9A40C700BBD45A /* RawLapseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252A73561F9A40C700BBD45A /* RawLapseTests.swift */; };
-		252A73621F9A40C700BBD45A /* RawLapseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252A73611F9A40C700BBD45A /* RawLapseUITests.swift */; };
 		252A73701F9A412B00BBD45A /* Hud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252A736F1F9A412B00BBD45A /* Hud.swift */; };
 		258B6F831FA3426D00AE4BA5 /* Feature Implementation Code.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258B6F821FA3426D00AE4BA5 /* Feature Implementation Code.swift */; };
 		25DC9C691F9C824900FBF703 /* PickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25DC9C681F9C824900FBF703 /* PickerViewController.swift */; };
@@ -37,23 +35,19 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		252A733E1F9A40C700BBD45A /* RawLapse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RawLapse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		252A73411F9A40C700BBD45A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		252A73431F9A40C700BBD45A /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
 		252A73461F9A40C700BBD45A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		252A73481F9A40C700BBD45A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		252A734B1F9A40C700BBD45A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		252A734D1F9A40C700BBD45A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		252A73521F9A40C700BBD45A /* RawLapseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RawLapseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		252A73561F9A40C700BBD45A /* RawLapseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawLapseTests.swift; sourceTree = "<group>"; };
-		252A73581F9A40C700BBD45A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		252A735D1F9A40C700BBD45A /* RawLapseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RawLapseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		252A73611F9A40C700BBD45A /* RawLapseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawLapseUITests.swift; sourceTree = "<group>"; };
-		252A73631F9A40C700BBD45A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		252A736F1F9A412B00BBD45A /* Hud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hud.swift; sourceTree = "<group>"; };
+		25579D831FACAC0D00E3C98D /* RawLapse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RawLapse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		258005A91FA0773B0027CBAA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		258B6F821FA3426D00AE4BA5 /* Feature Implementation Code.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Feature Implementation Code.swift"; sourceTree = "<group>"; };
 		25DC9C681F9C824900FBF703 /* PickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerViewController.swift; sourceTree = "<group>"; };
+		25E2F1DD1FACC742005011CE /* RawLapseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RawLapseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		25E2F1DE1FACC742005011CE /* RawLapseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RawLapseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,20 +80,10 @@
 			children = (
 				258005A91FA0773B0027CBAA /* README.md */,
 				252A73401F9A40C700BBD45A /* RawLapse */,
-				252A73551F9A40C700BBD45A /* RawLapseTests */,
-				252A73601F9A40C700BBD45A /* RawLapseUITests */,
-				252A733F1F9A40C700BBD45A /* Products */,
+				25579D831FACAC0D00E3C98D /* RawLapse.app */,
+				25E2F1DD1FACC742005011CE /* RawLapseTests.xctest */,
+				25E2F1DE1FACC742005011CE /* RawLapseUITests.xctest */,
 			);
-			sourceTree = "<group>";
-		};
-		252A733F1F9A40C700BBD45A /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				252A733E1F9A40C700BBD45A /* RawLapse.app */,
-				252A73521F9A40C700BBD45A /* RawLapseTests.xctest */,
-				252A735D1F9A40C700BBD45A /* RawLapseUITests.xctest */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		252A73401F9A40C700BBD45A /* RawLapse */ = {
@@ -116,24 +100,6 @@
 				252A734D1F9A40C700BBD45A /* Info.plist */,
 			);
 			path = RawLapse;
-			sourceTree = "<group>";
-		};
-		252A73551F9A40C700BBD45A /* RawLapseTests */ = {
-			isa = PBXGroup;
-			children = (
-				252A73561F9A40C700BBD45A /* RawLapseTests.swift */,
-				252A73581F9A40C700BBD45A /* Info.plist */,
-			);
-			path = RawLapseTests;
-			sourceTree = "<group>";
-		};
-		252A73601F9A40C700BBD45A /* RawLapseUITests */ = {
-			isa = PBXGroup;
-			children = (
-				252A73611F9A40C700BBD45A /* RawLapseUITests.swift */,
-				252A73631F9A40C700BBD45A /* Info.plist */,
-			);
-			path = RawLapseUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -153,7 +119,7 @@
 			);
 			name = RawLapse;
 			productName = RawLapse;
-			productReference = 252A733E1F9A40C700BBD45A /* RawLapse.app */;
+			productReference = 25579D831FACAC0D00E3C98D /* RawLapse.app */;
 			productType = "com.apple.product-type.application";
 		};
 		252A73511F9A40C700BBD45A /* RawLapseTests */ = {
@@ -171,7 +137,7 @@
 			);
 			name = RawLapseTests;
 			productName = RawLapseTests;
-			productReference = 252A73521F9A40C700BBD45A /* RawLapseTests.xctest */;
+			productReference = 25E2F1DD1FACC742005011CE /* RawLapseTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		252A735C1F9A40C700BBD45A /* RawLapseUITests */ = {
@@ -189,7 +155,7 @@
 			);
 			name = RawLapseUITests;
 			productName = RawLapseUITests;
-			productReference = 252A735D1F9A40C700BBD45A /* RawLapseUITests.xctest */;
+			productReference = 25E2F1DE1FACC742005011CE /* RawLapseUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -227,7 +193,7 @@
 				Base,
 			);
 			mainGroup = 252A73351F9A40C700BBD45A;
-			productRefGroup = 252A733F1F9A40C700BBD45A /* Products */;
+			productRefGroup = 252A73351F9A40C700BBD45A;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -282,7 +248,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				252A73571F9A40C700BBD45A /* RawLapseTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -290,7 +255,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				252A73621F9A40C700BBD45A /* RawLapseUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -448,7 +412,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.egeozsoy.rawlapse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -464,7 +428,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.egeozsoy.rawlapse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};

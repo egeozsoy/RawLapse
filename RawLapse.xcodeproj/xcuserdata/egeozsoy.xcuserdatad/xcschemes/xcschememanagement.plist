@@ -4,10 +4,33 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>RawLapse - Relase.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 		<key>RawLapse.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>252A733D1F9A40C700BBD45A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>252A73511F9A40C700BBD45A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>252A735C1F9A40C700BBD45A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
