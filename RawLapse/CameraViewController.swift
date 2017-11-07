@@ -32,6 +32,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var cameraPreviewLayerFrame: CGRect?
     var rawPhotoData: Data?
     
+    
+    
+    var jpegPhotoData: Data?
+    
+    
+    var shootRaw = false
+    
     //    hud
     var hudActive = false
     var hudView: Hud?
@@ -43,7 +50,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var activeTimelapse = false
     var lockAEButton: UIButton?
     var lockFocusButton:UIButton?
+    var rawButton: UIButton?
     var privacyPolicyButton: UIButton?
+    
     
     var secondInterval: Int?
     var amountOfPhotos: Int?
@@ -99,6 +108,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         return button
     }()
     
+    
+    
     let slimTopBar: UIView = {
         let bar = UIView()
         bar.backgroundColor = UIColor.black
@@ -140,49 +151,72 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     func setupInputOutput(){
         do{
             guard let currentCamera = currentCamera else {
-                deviceNotSupportedPrompt()
                 shutterButton.tintColor = disabledColor
                 return
             }
             let captureDeviceInput = try AVCaptureDeviceInput(device: currentCamera)
+            guard self.captureSession.canAddInput(captureDeviceInput) else { return }
             captureSession.addInput(captureDeviceInput)
             photoOutput = AVCapturePhotoOutput()
+            guard self.captureSession.canAddOutput(photoOutput!) else { return }
             captureSession.addOutput(photoOutput!)
-
             
-            guard let rawFormatType = photoOutput?.availableRawPhotoPixelFormatTypes.first else{
-                deviceNotSupportedPrompt()
-                shutterButton.tintColor = disabledColor
-                return
-            }
-            photoSettings = AVCapturePhotoSettings(rawPixelFormatType: rawFormatType)
-            photoSettings?.flashMode = .off
+            /*
+             guard let rawFormatType = photoOutput?.availableRawPhotoPixelFormatTypes.first else{
+             deviceNotSupportedPrompt()
+             shutterButton.tintColor = disabledColor
+             return
+             }
+             photoSettings = AVCapturePhotoSettings(rawPixelFormatType: rawFormatType)
+             photoSettings?.flashMode = .off
+             */
             try? currentCamera.lockForConfiguration()
             
             //            forces maximum shutter speed for best lowlight
             currentCamera.setExposureModeCustom(duration: currentCamera.activeFormat.maxExposureDuration, iso: currentCamera.activeFormat.minISO, completionHandler: nil)
             currentCamera.exposureMode = .continuousAutoExposure
             currentCamera.unlockForConfiguration()
-            guard let photoSettings = photoSettings else{
-                print("no photo settings")
-                return
-            }
-            let preferedThumbnailFormat = photoSettings.availableEmbeddedThumbnailPhotoCodecTypes.first
-            photoSettings.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
-            photoOutput?.setPreparedPhotoSettingsArray([photoSettings], completionHandler: nil)
             
-//            guard let output = photoOutput else{return}
-//            captureSession.addOutput(output)
+            /*
+             guard let photoSettings = photoSettings else{
+             return
+             }
+             let preferedThumbnailFormat = photoSettings.availableEmbeddedThumbnailPhotoCodecTypes.first
+             photoSettings.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
+             
+             photoOutput?.setPreparedPhotoSettingsArray([photoSettings], completionHandler: nil)
+             */
             
         }catch{
             
         }
     }
     
-    func setupPreviewLayer(){
-        if isDeviceNotSupported(){
+    //    how to setup photoSettings
+    func setupRawJpeg(rawSupported rawSupport: Bool){
+        if rawSupport{
+            guard let rawFormatType = photoOutput?.availableRawPhotoPixelFormatTypes.first else{
+                setupRawJpeg(rawSupported: false)
+                return
+            }
+            photoSettings = AVCapturePhotoSettings(rawPixelFormatType: rawFormatType)
+        }
+        else{
+            photoSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey : AVVideoCodecType.jpeg])
+        }
+        guard let photoSettings = photoSettings else{
             return
         }
+        let preferedThumbnailFormat = photoSettings.availableEmbeddedThumbnailPhotoCodecTypes.first
+        photoSettings.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
+        
+        photoOutput?.setPreparedPhotoSettingsArray([photoSettings], completionHandler: nil)
+        
+    }
+    
+    
+    
+    func setupPreviewLayer(){
         cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         guard let cameraPreviewLayer = cameraPreviewLayer else{
             print("no preview layer")
@@ -211,9 +245,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     func startRunningCaptureSession(){
-        if isDeviceNotSupported(){
-            return
-        }
+        
         captureSession.startRunning()
         
     }
@@ -352,7 +384,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         leftSwipeRecognizer.direction = .left
         let rightSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
         rightSwipeRecognizer.direction = .right
-
+        
         self.view.addGestureRecognizer(leftSwipeRecognizer)
         self.view.addGestureRecognizer(rightSwipeRecognizer)
         
@@ -365,8 +397,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 self.setupInputOutput()
                 self.setupPreviewLayer()
                 self.startRunningCaptureSession()
-
-                
                 
             }
             
@@ -387,11 +417,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
-        
-        
     }
-//    changes button orientation
+    //    changes button orientation
     @objc func newOrientation(notification: Notification){
         var angle: Double
         switch UIDevice.current.orientation {
@@ -408,32 +435,46 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         self.lockAEButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
         self.lockFocusButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
+        self.rawButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
         self.hudButton.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
         self.photoCounterLabel.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
         self.settingsTextView.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
     }
     
-    func deviceNotSupportedPrompt(){
+    func rawNotSupportedOnDevicePrompt(){
         let alert = UIAlertController(title: "Device not supported",
-                                      message:  "RawLapse only works on devices, that support raw photos",
+                                      message:  "RAW mode is only available on devices, that support raw photos",
                                       preferredStyle: .alert)
         let okAction = UIAlertAction(title: "Ok", style: .default, handler: nil)
         alert.addAction(okAction)
         present(alert, animated: true, completion: nil)
     }
     
-    func isDeviceNotSupported() -> Bool {
+    func rawNotSupportedOnDevice() -> Bool {
         return (photoOutput?.availableRawPhotoFileTypes == nil  || photoOutput?.availableRawPhotoFileTypes.count == 0)
     }
     
     
+    @objc func toggleRawButton(){
+        if activeTimelapse == false{
+            if rawButton?.isSelected == true{
+                rawButton?.isSelected = false
+            }
+            else{
+                if rawNotSupportedOnDevice(){
+                    rawNotSupportedOnDevicePrompt()
+                }
+                else{
+                    rawButton?.isSelected = true
+                }
+            }
+        }
+        
+    }
+    
     @objc func startTimelapse(){
         
-        if isDeviceNotSupported(){
-            deviceNotSupportedPrompt()
-            self.shutterButton.tintColor = disabledColor
-            return
-        }
+        setupRawJpeg(rawSupported: rawButton!.isSelected)
         
         self.amountOfPhotos = pickerViewController.amountOfPhotos
         self.secondInterval = pickerViewController.secondInterval
@@ -445,40 +486,40 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         UIScreen.main.brightness = 0.0
         if(activeTimelapse == false){
             activeTimelapse = true
-//            toggleProximitySensor()
+            toggleProximitySensor()
             shutterButton.tintColor = UIColor.red
             //            how to use the timer
             if let secondInterval = secondInterval {
-            timelapseTimer =  Timer.scheduledTimer(withTimeInterval: TimeInterval(secondInterval), repeats: true) { (timer) in
-                
-                if let amountOfPhotos = self.amountOfPhotos  , let continuous = self.continuous{
-                if(self.photoCounter <= amountOfPhotos || continuous){
-                    self.takePhoto()
-                    self.photoCounter += 1;
-                    self.updateLabels()
-                    if(amountOfPhotos % 10 == 0){
-                        UIScreen.main.brightness = 0.0
+                timelapseTimer =  Timer.scheduledTimer(withTimeInterval: TimeInterval(secondInterval), repeats: true) { (timer) in
+                    
+                    if let amountOfPhotos = self.amountOfPhotos  , let continuous = self.continuous{
+                        if(self.photoCounter <= amountOfPhotos || continuous){
+                            self.takePhoto()
+                            self.photoCounter += 1;
+                            self.updateLabels()
+                            if(amountOfPhotos % 10 == 0){
+                                UIScreen.main.brightness = 0.0
+                            }
+                        }
+                        else{
+                            self.timelapseTimer?.invalidate();
+                            if let brightness = self.startBrightness {
+                                UIScreen.main.brightness = brightness
+                            }
+                            self.activeTimelapse = false;
+                            self.shutterButton.tintColor = UIColor.white
+                            self.toggleProximitySensor()
+                            return;
+                        }
                     }
                 }
-                else{
-                    self.timelapseTimer?.invalidate();
-                    if let brightness = self.startBrightness {
-                    UIScreen.main.brightness = brightness
-                    }
-                    self.activeTimelapse = false;
-                    self.shutterButton.tintColor = UIColor.white
-//                    self.toggleProximitySensor()
-                    return;
-                }
-                }
-            }
             }
         }else{
             activeTimelapse = false;
-//            toggleProximitySensor()
+            toggleProximitySensor()
             shutterButton.tintColor = UIColor.white
             if let brightness = self.startBrightness {
-            UIScreen.main.brightness = brightness
+                UIScreen.main.brightness = brightness
             }
             timelapseTimer?.invalidate();
             return ;
@@ -487,19 +528,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     @objc  func takePhoto(){
-        if photoOutput?.availableRawPhotoPixelFormatTypes == nil || photoOutput?.availableRawPhotoPixelFormatTypes.count == 0 {
-            return
-        }
         if let photoSettings = self.photoSettings {
-        
-        let uniqueSettings = AVCapturePhotoSettings.init(from: photoSettings)
-        self.photoOutput?.capturePhoto(with: uniqueSettings, delegate: self)
+            
+            let uniqueSettings = AVCapturePhotoSettings.init(from: photoSettings)
+            self.photoOutput?.capturePhoto(with: uniqueSettings, delegate: self)
         }
         
     }
     
     func cachesDirectory() -> URL{
-
+        
         let paths = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
         return paths[0]
     }
@@ -523,20 +561,23 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             appendString = "\(photoCounter)"
         }
         if let newUuid = uuid{
-        let saveString = "IMG-" + newUuid + appendString + ".dng"
-        return cachesDirectory().appendingPathComponent(saveString)
+            let saveString = "IMG-" + newUuid + appendString + ".dng"
+            return cachesDirectory().appendingPathComponent(saveString)
         }
         else {
             let saveString = "IMG-" + appendString + ".dng"
             return cachesDirectory().appendingPathComponent(saveString)        }
-        }
-        
-
+    }
+    
+    
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         
         if photo.isRawPhoto{
             self.rawPhotoData = photo.fileDataRepresentation()
+        }
+        else{
+            self.jpegPhotoData = photo.fileDataRepresentation()
         }
     }
     
@@ -564,12 +605,20 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         catch{
             return
         }
+        guard let rawPrefered = rawButton?.isSelected else{ return}
+        
         PHPhotoLibrary.shared().performChanges({
             let creationRequet = PHAssetCreationRequest.forAsset()
             let creationOptions = PHAssetResourceCreationOptions()
             creationOptions.shouldMoveFile = true
             
-            creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
+            if rawPrefered{
+                
+                creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
+            }
+            else{
+                creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
+            }
             
         }, completionHandler: nil)
         
@@ -619,7 +668,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    
     @objc func handleHud(){
         if hudActive {
             hudView?.animateOut()
@@ -649,11 +697,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         lockUnlockExposureFocus(toggleExposure: false, toggleFocus: true)
     }
     
+    
+    
     @objc func showPrivacyPolicy(){
         let alert = UIAlertController(title: "Privacy Policy", message: " RawLapse does not upload or permanently store any photos taken within the app. We don't collect any user data, and the app does not use internet at all. All the required permissions are needed to take and save the photos locally.", preferredStyle: .alert)
         let action = UIAlertAction(title: "Understood", style: .default, handler: nil)
         alert.addAction(action)
-       present(alert, animated: true, completion: nil)
+        present(alert, animated: true, completion: nil)
     }
     
     var slimTopBarRightAnchor : NSLayoutConstraint?
@@ -702,6 +752,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         slimTopBar.addSubview(hudButton)
         slimTopBar.addSubview(lockAEButton!)
         slimTopBar.addSubview(lockFocusButton!)
+        slimTopBar.addSubview(rawButton!)
         slimTopBar.addSubview(privacyPolicyButton!)
         bottomBar.addSubview(settingsTextView)
         bottomBar.addSubview(photoCounterLabel)
@@ -722,6 +773,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         lockFocusButton?.addTarget(self, action: #selector(toggleLockFocusButton), for: .touchUpInside)
         lockFocusButton?.translatesAutoresizingMaskIntoConstraints = false
         
+        rawButton = UIButton()
+        rawButton?.setTitle("RAW", for: .normal)
+        rawButton?.setTitleColor(UIColor.white, for: .normal)
+        rawButton?.setTitleColor(UIColor.orange, for: .selected)
+        rawButton?.addTarget(self, action: #selector(toggleRawButton), for: .touchUpInside)
+        rawButton?.translatesAutoresizingMaskIntoConstraints = false
         
         privacyPolicyButton = UIButton()
         privacyPolicyButton?.setTitle("i", for: .normal)
@@ -734,7 +791,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     func setupUI(){
         slimTopBarBottomAnchor?.isActive = false
         slimTopBarWidthAnchor?.isActive = false
-       
+        
         
         slimTopBarTopAnchor = slimTopBar.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor , constant:0)
         slimTopBarTopAnchor!.isActive = true
@@ -775,6 +832,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         privacyPolicyButton?.widthAnchor.constraint(equalToConstant: 66).isActive = true
         privacyPolicyButton?.heightAnchor.constraint(equalToConstant: 66).isActive = true
         
+        rawButton?.rightAnchor.constraint(equalTo: privacyPolicyButton!.leftAnchor, constant: -32).isActive = true
+        rawButton?.centerYAnchor.constraint(equalTo: slimTopBar.centerYAnchor, constant: 0).isActive = true
+        rawButton?.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        rawButton?.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        
         
         bottomBarWidthAnchor?.isActive = false
         bottomBarTopAnchor?.isActive = false
@@ -813,6 +875,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         
     }
+    
     
 }
 
