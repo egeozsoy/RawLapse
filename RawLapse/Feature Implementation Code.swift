@@ -9,7 +9,6 @@
 import Foundation
 
 /*
-  UIFileSharingEnabled
  
  
 func handleIsoTooHigh(){
