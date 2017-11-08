@@ -11,8 +11,10 @@ import Foundation
 /*
  
  
+ var blackOutView: UIView?
 func handleIsoTooHigh(){
     
+ var blackOutView: UIView?
     let currentShutter = currentCamera?.exposureDuration
     var newIso = currentCamera!.iso
     var newShutter = currentShutter

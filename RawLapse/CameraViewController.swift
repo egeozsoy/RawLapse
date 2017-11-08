@@ -20,7 +20,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
      Start the capture session.
      
      */
-    
     //    data source Reference
     let pickerViewController = PickerViewController()
     //    camera Settings
@@ -30,19 +29,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var photoSettings: AVCapturePhotoSettings?
     var cameraPreviewLayer: AVCaptureVideoPreviewLayer?
     var cameraPreviewLayerFrame: CGRect?
+    
     var rawPhotoData: Data?
-    
-    
-    
     var jpegPhotoData: Data?
-    
-    
-    var shootRaw = false
     
     //    hud
     var hudActive = false
     var hudView: Hud?
-    var blackOutView: UIView?
     
     //    timelapse settings
     var timelapseTimer: Timer?
@@ -52,8 +45,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var lockFocusButton:UIButton?
     var rawButton: UIButton?
     var privacyPolicyButton: UIButton?
-    
-    
     var secondInterval: Int?
     var amountOfPhotos: Int?
     var continuous: Bool?
@@ -66,7 +57,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var labelUpdateTimer: Timer?
     
     let disabledColor = UIColor.init(white: 0.5, alpha: 0.5)
-    
     
     let shutterButton: UIButton = {
         let button = UIButton()
@@ -89,34 +79,19 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         return tv
     }()
     
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
-    
-    override var shouldAutorotate: Bool{
-        return false
-    }
-    
-    
-    
     let hudButton:UIButton = {
         let button = UIButton()
         button.setTitle("HUD", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(handleHud), for: .touchUpInside)
-        
         return button
     }()
-    
-    
     
     let slimTopBar: UIView = {
         let bar = UIView()
         bar.backgroundColor = UIColor.black
         bar.translatesAutoresizingMaskIntoConstraints = false
         return bar
-        
-        
     }()
     
     let bottomBar: UIView = {
@@ -124,7 +99,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         bar.backgroundColor = UIColor.black
         bar.translatesAutoresizingMaskIntoConstraints = false
         return bar
-        
     }()
     
     let photoCounterLabel: UILabel = {
@@ -136,6 +110,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         return label
     }()
     
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
+    
+    override var shouldAutorotate: Bool{
+        return false
+    }
     
     func setupCaptureSession(){
         captureSession.sessionPreset = AVCaptureSession.Preset.photo
