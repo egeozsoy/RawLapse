@@ -18,8 +18,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
      Configure the capture session by adding the camera input and the capture output.
      Optionally create and attach a preview view.
      Start the capture session.
-     
      */
+    
     //    data source Reference
     let pickerViewController = PickerViewController()
     //    camera Settings
@@ -29,7 +29,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var photoSettings: AVCapturePhotoSettings?
     var cameraPreviewLayer: AVCaptureVideoPreviewLayer?
     var cameraPreviewLayerFrame: CGRect?
-    
+    //    captured photos as data objects
     var rawPhotoData: Data?
     var jpegPhotoData: Data?
     
@@ -126,7 +126,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
         let device = deviceDiscoverySession.devices.first
         currentCamera = device
-        
     }
     
     func setupInputOutput(){
@@ -144,34 +143,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             guard self.captureSession.canAddOutput(photoOutput!) else { return }
             captureSession.addOutput(photoOutput!)
             
-            /*
-             guard let rawFormatType = photoOutput?.availableRawPhotoPixelFormatTypes.first else{
-             deviceNotSupportedPrompt()
-             shutterButton.tintColor = disabledColor
-             return
-             }
-             photoSettings = AVCapturePhotoSettings(rawPixelFormatType: rawFormatType)
-             photoSettings?.flashMode = .off
-             */
             try? currentCamera.lockForConfiguration()
             //            forces maximum shutter speed for best lowlight
             currentCamera.setExposureModeCustom(duration: currentCamera.activeFormat.maxExposureDuration, iso: currentCamera.activeFormat.minISO, completionHandler: nil)
             currentCamera.exposureMode = .continuousAutoExposure
             currentCamera.unlockForConfiguration()
-            
-            /*
-             guard let photoSettings = photoSettings else{
-             return
-             }
-             let preferedThumbnailFormat = photoSettings.availableEmbeddedThumbnailPhotoCodecTypes.first
-             photoSettings.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
-             
-             photoOutput?.setPreparedPhotoSettingsArray([photoSettings], completionHandler: nil)
-             */
-            
-        }catch{
-            
-        }
+        }catch{}
     }
     
     //    how to setup photoSettings
@@ -220,17 +197,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         let wantedHeight = cameraPreviewLayer.frame.width * 4/3
         let y = (height - wantedHeight)/2
         cameraPreviewLayerFrame = CGRect(x: x, y: y, width: width , height: wantedHeight)
-        
     }
     
     func startRunningCaptureSession(){
-        
         captureSession.startRunning()
-        
     }
     
     func updateLabels(){
-        
         if let camera = currentCamera {
             settingsTextView.text = "ISO: \(Int(camera.iso))\nShutter: 1/\(Int(1 / (camera.exposureDuration).seconds))\nEV:\(camera.exposureTargetBias)"
             if pickerViewController.continuous  {
@@ -239,7 +212,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             else {
                 photoCounterLabel.text = "\(photoCounter)/\(pickerViewController.amountOfPhotos)"
             }
-            
         }
     }
     
@@ -259,7 +231,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 }else{
                     currentCamera?.focusMode = .continuousAutoFocus
                 }
-                
             }
             currentCamera?.unlockForConfiguration()
         }
@@ -273,7 +244,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         if(tap.location(in: self.view).y < (self.view.frame.height - cameraPreviewLayerFrame.height) / 2 || tap.location(in: self.view).y > (self.view.frame.height - cameraPreviewLayerFrame.height) / 2 + cameraPreviewLayerFrame.height ){
         }else{
-            
             try? currentCamera?.lockForConfiguration()
             let x = tap.location(in: self.view).y / self.view.bounds.size.height
             let y = 1 - tap.location(in: self.view).x / self.view.bounds.size.width
@@ -281,7 +251,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             if(exposureNotLocked){
                 currentCamera?.exposurePointOfInterest = point
                 currentCamera?.exposureMode = .continuousAutoExposure
-                
             }
             if(focusNotLocked){
                 currentCamera?.focusPointOfInterest = CGPoint(x: x, y: y)
@@ -290,9 +259,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             currentCamera?.unlockForConfiguration()
         }
         updateLabels()
-        
-        
     }
+    
     @objc func handleSettingTap(_ tap : UITapGestureRecognizer ){
         if let lockedExposure = lockAEButton?.isSelected , let lockedFocus = lockFocusButton?.isSelected{
             handleExposureFocusTap(tap, changeExposure: !lockedExposure, changeFocus: !lockedFocus)
@@ -314,7 +282,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         currentCamera.unlockForConfiguration()
     }
     
-    
     //    get preview by putting your hand
     func toggleProximitySensor(){
         let device = UIDevice.current
@@ -334,18 +301,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             UIScreen.main.brightness = 1.0
             Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { (timer) in
                 UIScreen.main.brightness = 0.0
-                
             })
-            
         }
     }
     
     func keepLabelsUpToDate(){
-        
         labelUpdateTimer =  Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { (timer) in
             self.updateLabels()
         }
     }
+    
     func stopUpdateTimer(){
         if labelUpdateTimer != nil{
             labelUpdateTimer?.invalidate()
@@ -367,7 +332,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         self.view.addGestureRecognizer(rightSwipeRecognizer)
         
         checkCameraAuthorization { (error) in
-            
             DispatchQueue.main.async {
                 self.keepLabelsUpToDate()
                 self.setupCaptureSession()
@@ -376,11 +340,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 self.setupPreviewLayer()
                 self.startRunningCaptureSession()
             }
-            
         }
-        checkPhotoLibraryAuthorization { (error) in
-            
-        }
+        checkPhotoLibraryAuthorization {(error) in}
         //        allows buttons to change orientation
         NotificationCenter.default.addObserver(self, selector: #selector(newOrientation), name: Notification.Name.UIDeviceOrientationDidChange, object: nil)
         
@@ -388,12 +349,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         setupUI()
         
         startBrightness = UIScreen.main.brightness
-        
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
     }
     
     //    changes button orientation
@@ -410,7 +369,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             angle = 0
             break;
         }
-        
         self.lockAEButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
         self.lockFocusButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
         self.rawButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
@@ -432,7 +390,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         return (photoOutput?.availableRawPhotoFileTypes == nil  || photoOutput?.availableRawPhotoFileTypes.count == 0)
     }
     
-    
     @objc func toggleRawButton(){
         if activeTimelapse == false{
             if rawButton?.isSelected == true{
@@ -447,11 +404,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 }
             }
         }
-        
     }
     
     @objc func startTimelapse(){
-        
         setupRawJpeg(rawSupported: rawButton!.isSelected)
         
         self.amountOfPhotos = pickerViewController.amountOfPhotos
@@ -502,20 +457,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             timelapseTimer?.invalidate();
             return ;
         }
-        
     }
     
     @objc  func takePhoto(){
         if let photoSettings = self.photoSettings {
-            
             let uniqueSettings = AVCapturePhotoSettings.init(from: photoSettings)
             self.photoOutput?.capturePhoto(with: uniqueSettings, delegate: self)
         }
-        
     }
     
     func cachesDirectory() -> URL{
-        
         let paths = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
         return paths[0]
     }
@@ -547,10 +498,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
     
-    
-    
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        
         if photo.isRawPhoto{
             self.rawPhotoData = photo.fileDataRepresentation()
         }
@@ -559,19 +507,15 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
         guard error == nil else{
             return
         }
-        
         saveRawWithEmbeddedThumbnail()
     }
     
     func saveRawWithEmbeddedThumbnail(){
-        self.checkPhotoLibraryAuthorization { (error) in
-            
-        }
+        self.checkPhotoLibraryAuthorization { (error) in}
         
         let dngFileURL = uniqueURL()
         do{
@@ -591,15 +535,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             creationOptions.shouldMoveFile = true
             
             if rawPreferred{
-                
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
             else{
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
             }
-            
         }, completionHandler: nil)
-        
     }
     
     func checkCameraAuthorization(_ completionHandler: @escaping ((_ authorized: Bool) -> Void)) {
@@ -650,7 +591,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         if hudActive {
             hudView?.animateOut()
             hudActive = false
-            
         }
         else{
             if(hudView == nil){
@@ -663,7 +603,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 hudActive = true
             }
         }
-        
     }
     
     @objc func toggleLockAEButton(){
@@ -778,7 +717,5 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         photoCounterLabel.widthAnchor.constraint(equalToConstant: 100).isActive = true
         photoCounterLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
     }
-    
-    
 }
 
