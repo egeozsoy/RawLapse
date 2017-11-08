@@ -133,11 +133,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         do{
             guard let currentCamera = currentCamera else {
                 shutterButton.tintColor = disabledColor
+                showAlert(withTitle: "No Camera", withMessage: "Make sure your device supports a camera")
                 return
             }
             let captureDeviceInput = try AVCaptureDeviceInput(device: currentCamera)
             guard self.captureSession.canAddInput(captureDeviceInput) else { return }
             captureSession.addInput(captureDeviceInput)
+            
             photoOutput = AVCapturePhotoOutput()
             guard self.captureSession.canAddOutput(photoOutput!) else { return }
             captureSession.addOutput(photoOutput!)
@@ -152,7 +154,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
              photoSettings?.flashMode = .off
              */
             try? currentCamera.lockForConfiguration()
-            
             //            forces maximum shutter speed for best lowlight
             currentCamera.setExposureModeCustom(duration: currentCamera.activeFormat.maxExposureDuration, iso: currentCamera.activeFormat.minISO, completionHandler: nil)
             currentCamera.exposureMode = .continuousAutoExposure
@@ -349,7 +350,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             self.updateLabels()
         }
     }
-    
     func stopUpdateTimer(){
         if labelUpdateTimer != nil{
             labelUpdateTimer?.invalidate()
@@ -357,6 +357,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
+    //MARK: viewWillApper
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -378,7 +379,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 self.setupInputOutput()
                 self.setupPreviewLayer()
                 self.startRunningCaptureSession()
-                
             }
             
         }
@@ -399,6 +399,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         super.viewDidLoad()
         
     }
+    
     //    changes button orientation
     @objc func newOrientation(notification: Notification){
         var angle: Double
@@ -422,11 +423,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         self.settingsTextView.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
     }
     
-    func rawNotSupportedOnDevicePrompt(){
-        let alert = UIAlertController(title: "Device not supported",
-                                      message:  "RAW mode is only available on devices, that support raw photos",
+    func showAlert(withTitle title:String , withMessage message:String){
+        let alert = UIAlertController(title: title,
+                                      message:  message,
                                       preferredStyle: .alert)
-        let okAction = UIAlertAction(title: "Ok", style: .default, handler: nil)
+        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
         alert.addAction(okAction)
         present(alert, animated: true, completion: nil)
     }
@@ -443,7 +444,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
             else{
                 if rawNotSupportedOnDevice(){
-                    rawNotSupportedOnDevicePrompt()
+                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos")
                 }
                 else{
                     rawButton?.isSelected = true
@@ -681,52 +682,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     
     @objc func showPrivacyPolicy(){
-        let alert = UIAlertController(title: "Privacy Policy", message: " RawLapse does not upload or permanently store any photos taken within the app. We don't collect any user data, and the app does not use internet at all. All the required permissions are needed to take and save the photos locally.", preferredStyle: .alert)
-        let action = UIAlertAction(title: "Understood", style: .default, handler: nil)
-        alert.addAction(action)
-        present(alert, animated: true, completion: nil)
+        showAlert(withTitle: "Privacy Policy", withMessage: " RawLapse does not upload or permanently store any photos taken within the app. We don't collect any user data, and the app does not use internet at all. All the required permissions are needed to take and save the photos locally.")
     }
-    
-    var slimTopBarRightAnchor : NSLayoutConstraint?
-    var slimTopBarHeightAnchor: NSLayoutConstraint?
-    
-    var slimTopBarBottomAnchor: NSLayoutConstraint?
-    var slimTopBarWidthAnchor: NSLayoutConstraint?
-    var slimTopBarTopAnchor : NSLayoutConstraint?
-    var slimTopBarLeftAnchor : NSLayoutConstraint?
-    
-    var bottomBarLeftAnchor: NSLayoutConstraint?
-    var bottomBarHeightAnchor:NSLayoutConstraint?
-    
-    var bottomBarTopAnchor: NSLayoutConstraint?
-    var bottomBarWidthAnchor: NSLayoutConstraint?
-    
-    var lockAEButtonLeftAnchor : NSLayoutConstraint?
-    var lockAEButtonCenterYAnchor : NSLayoutConstraint?
-    var lockAEButtonBottomAnchor: NSLayoutConstraint?
-    var lockAEButtonCenterXAnchor : NSLayoutConstraint?
-    
-    var lockFocusButtonLeftAnchor:NSLayoutConstraint?
-    var lockFocusButtonCenterYAnchor : NSLayoutConstraint?
-    var lockFocusButtonBottomAnchor: NSLayoutConstraint?
-    var lockFocusButtonCenterXAnchor : NSLayoutConstraint?
-    
-    var settingsLabelTopAnchorConstraint: NSLayoutConstraint?
-    var settingsLabelWidthAnchorConstraint:NSLayoutConstraint?
-    var settingsLabelRightAnchorConstraint: NSLayoutConstraint?
-    var settingsLabelHeightAnchorConstraint: NSLayoutConstraint?
-    
-    var photoCounterLabelBottomAnchorConstraint: NSLayoutConstraint?
-    var photoCounterLabelWidthAnchorConstraint: NSLayoutConstraint?
-    var photoCounterLabelLeftAnchorConstraint: NSLayoutConstraint?
-    var photoCounterLabelHeightAnchorConstraint: NSLayoutConstraint?
     
     func addViews(){
         if(buttonsSet == false){
             setButtons()
             buttonsSet = true
         }
-        
         bottomBar.addSubview(shutterButton)
         self.view.addSubview(slimTopBar)
         self.view.addSubview(bottomBar)
@@ -770,41 +733,24 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     func setupUI(){
-        slimTopBarBottomAnchor?.isActive = false
-        slimTopBarWidthAnchor?.isActive = false
         
-        
-        slimTopBarTopAnchor = slimTopBar.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor , constant:0)
-        slimTopBarTopAnchor!.isActive = true
-        slimTopBarLeftAnchor = slimTopBar.leftAnchor.constraint(equalTo: self.view.leftAnchor)
-        slimTopBarLeftAnchor!.isActive = true
-        slimTopBarRightAnchor = slimTopBar.rightAnchor.constraint(equalTo: self.view.rightAnchor)
-        slimTopBarRightAnchor!.isActive = true
-        slimTopBarHeightAnchor = slimTopBar.heightAnchor.constraint(equalToConstant: 50)
-        slimTopBarHeightAnchor!.isActive = true
+        slimTopBar.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor , constant:0).isActive = true
+        slimTopBar.leftAnchor.constraint(equalTo: self.view.leftAnchor).isActive = true
+        slimTopBar.rightAnchor.constraint(equalTo: self.view.rightAnchor).isActive = true
+        slimTopBar.heightAnchor.constraint(equalToConstant: 50).isActive = true
         
         hudButton.centerXAnchor.constraint(equalTo: slimTopBar.centerXAnchor).isActive = true
         hudButton.centerYAnchor.constraint(equalTo: slimTopBar.centerYAnchor).isActive = true
         hudButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
         hudButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
         
-        lockAEButtonBottomAnchor?.isActive = false
-        lockAEButtonCenterXAnchor?.isActive = false
-        
-        lockAEButtonLeftAnchor = lockAEButton?.leftAnchor.constraint(equalTo: slimTopBar.leftAnchor, constant: 16)
-        lockAEButtonLeftAnchor?.isActive = true
-        lockAEButtonCenterYAnchor = lockAEButton?.centerYAnchor.constraint(equalTo: slimTopBar.centerYAnchor)
-        lockAEButtonCenterYAnchor?.isActive = true
+        lockAEButton?.leftAnchor.constraint(equalTo: slimTopBar.leftAnchor, constant: 16).isActive = true
+        lockAEButton?.centerYAnchor.constraint(equalTo: slimTopBar.centerYAnchor).isActive = true
         lockAEButton?.widthAnchor.constraint(equalToConstant: 44).isActive = true
         lockAEButton?.heightAnchor.constraint(equalToConstant: 44).isActive = true
         
-        lockFocusButtonCenterXAnchor?.isActive = false
-        lockFocusButtonBottomAnchor?.isActive = false
-        
-        lockFocusButtonLeftAnchor = lockFocusButton?.leftAnchor.constraint(equalTo: lockAEButton!.rightAnchor)
-        lockFocusButtonLeftAnchor?.isActive = true
-        lockFocusButtonCenterYAnchor = lockFocusButton?.centerYAnchor.constraint(equalTo: slimTopBar.centerYAnchor)
-        lockFocusButtonCenterYAnchor?.isActive = true
+        lockFocusButton?.leftAnchor.constraint(equalTo: lockAEButton!.rightAnchor).isActive = true
+        lockFocusButton?.centerYAnchor.constraint(equalTo: slimTopBar.centerYAnchor).isActive = true
         lockFocusButton?.widthAnchor.constraint(equalToConstant: 44).isActive = true
         lockFocusButton?.heightAnchor.constraint(equalToConstant: 44).isActive = true
         
@@ -818,43 +764,25 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         rawButton?.widthAnchor.constraint(equalToConstant: 44).isActive = true
         rawButton?.heightAnchor.constraint(equalToConstant: 44).isActive = true
         
-        
-        bottomBarWidthAnchor?.isActive = false
-        bottomBarTopAnchor?.isActive = false
         bottomBar.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor , constant:0).isActive = true
         bottomBar.rightAnchor.constraint(equalTo: self.view.rightAnchor).isActive = true
-        
-        bottomBarLeftAnchor = bottomBar.leftAnchor.constraint(equalTo: self.view.leftAnchor)
-        bottomBarLeftAnchor?.isActive = true
-        
-        bottomBarHeightAnchor = bottomBar.heightAnchor.constraint(equalToConstant: 100)
-        bottomBarHeightAnchor?.isActive = true
+        bottomBar.leftAnchor.constraint(equalTo: self.view.leftAnchor).isActive = true
+        bottomBar.heightAnchor.constraint(equalToConstant: 100).isActive = true
         
         shutterButton.centerXAnchor.constraint(equalTo: bottomBar.centerXAnchor).isActive = true
         shutterButton.centerYAnchor.constraint(equalTo: bottomBar.centerYAnchor).isActive = true
         shutterButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
         shutterButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
         
-        settingsLabelRightAnchorConstraint?.isActive = false
-        settingsLabelHeightAnchorConstraint?.isActive = false
-        
         settingsTextView.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor).isActive = true
         settingsTextView.leftAnchor.constraint(equalTo: bottomBar.leftAnchor).isActive = true
         settingsTextView.heightAnchor.constraint(equalToConstant: 88).isActive = true
-        
-        settingsLabelWidthAnchorConstraint = settingsTextView.widthAnchor.constraint(equalToConstant: 100)
-        settingsLabelWidthAnchorConstraint?.isActive = true
-        
-        photoCounterLabelLeftAnchorConstraint?.isActive = false
-        photoCounterLabelHeightAnchorConstraint?.isActive = false
+        settingsTextView.widthAnchor.constraint(equalToConstant: 100).isActive = true
         
         photoCounterLabel.rightAnchor.constraint(equalTo: bottomBar.rightAnchor).isActive = true
         photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor).isActive = true
-        photoCounterLabelWidthAnchorConstraint = photoCounterLabel.widthAnchor.constraint(equalToConstant: 100)
-        photoCounterLabelWidthAnchorConstraint?.isActive = true
+        photoCounterLabel.widthAnchor.constraint(equalToConstant: 100).isActive = true
         photoCounterLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        
-        
     }
     
     
