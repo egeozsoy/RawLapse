@@ -186,17 +186,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         else{
             photoSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey : AVVideoCodecType.jpeg])
         }
-        guard let photoSettings = photoSettings else{
+        guard let pSettings = photoSettings else{
             return
         }
-        let preferedThumbnailFormat = photoSettings.availableEmbeddedThumbnailPhotoCodecTypes.first
-        photoSettings.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
+        let preferedThumbnailFormat = pSettings.availableEmbeddedThumbnailPhotoCodecTypes.first
+        pSettings.embeddedThumbnailPhotoFormat = [AVVideoCodecKey : preferedThumbnailFormat as Any , AVVideoWidthKey : 512 , AVVideoHeightKey: 512]
         
-        photoOutput?.setPreparedPhotoSettingsArray([photoSettings], completionHandler: nil)
-        
+        photoOutput?.setPreparedPhotoSettingsArray([pSettings], completionHandler: nil)
     }
-    
-    
     
     func setupPreviewLayer(){
         cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
@@ -231,7 +228,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         captureSession.startRunning()
         
     }
-    
     
     func updateLabels(){
         
@@ -587,14 +583,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         catch{
             return
         }
-        guard let rawPrefered = rawButton?.isSelected else{ return}
+        guard let rawPreferred = rawButton?.isSelected else{ return}
         
         PHPhotoLibrary.shared().performChanges({
             let creationRequet = PHAssetCreationRequest.forAsset()
             let creationOptions = PHAssetResourceCreationOptions()
             creationOptions.shouldMoveFile = true
             
-            if rawPrefered{
+            if rawPreferred{
                 
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
@@ -678,8 +674,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         lockFocusButton?.isSelected = !(lockFocusButton!.isSelected)
         lockUnlockExposureFocus(toggleExposure: false, toggleFocus: true)
     }
-    
-    
     
     @objc func showPrivacyPolicy(){
         showAlert(withTitle: "Privacy Policy", withMessage: " RawLapse does not upload or permanently store any photos taken within the app. We don't collect any user data, and the app does not use internet at all. All the required permissions are needed to take and save the photos locally.")
