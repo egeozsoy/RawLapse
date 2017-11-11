@@ -357,6 +357,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     //    changes button orientation
     @objc func newOrientation(notification: Notification){
+        print("rotation change")
         var angle: Double
         switch UIDevice.current.orientation {
         case UIDeviceOrientation.landscapeLeft:
@@ -459,10 +460,34 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
+    func managePhotoOrientation() -> AVCaptureVideoOrientation {
+        var currentDevice: UIDevice
+        currentDevice = .current
+        var deviceOrientation: UIDeviceOrientation
+        deviceOrientation = currentDevice.orientation
+
+        var imageOrientation: AVCaptureVideoOrientation
+
+        if deviceOrientation == .portrait {
+            imageOrientation = .portrait
+        }else if (deviceOrientation == .landscapeLeft){
+            imageOrientation = .landscapeRight
+        }else if (deviceOrientation == .landscapeRight){
+            imageOrientation = .landscapeLeft
+        }else if (deviceOrientation == .portraitUpsideDown){
+            imageOrientation = .portraitUpsideDown
+        }else{
+            imageOrientation = .portrait
+        }
+        return imageOrientation
+    }
+    
     @objc  func takePhoto(){
         if let photoSettings = self.photoSettings {
+            photoOutput?.connection(with: AVMediaType.video)?.videoOrientation = managePhotoOrientation()
             let uniqueSettings = AVCapturePhotoSettings.init(from: photoSettings)
             self.photoOutput?.capturePhoto(with: uniqueSettings, delegate: self)
+            
         }
     }
     
