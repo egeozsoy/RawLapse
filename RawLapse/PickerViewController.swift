@@ -13,10 +13,32 @@ class PickerViewController: UIViewController , UIPickerViewDelegate , UIPickerVi
     var pickerViewList1 =  [String]()
     var pickerViewList2 =  [String]()
     
-    var secondInterval:Int = 3
-    var amountOfPhotos: Int = 10
-    var continuous: Bool = false
+//    var secondInterval:Int = 3
+//    var amountOfPhotos: Int = 10
+//    var continuous: Bool = false
     
+    var secondInterval:Int {
+        get{
+            if UserDefaults.standard.integer(forKey: "secondInterval") == 0{
+                return 3
+            }
+            return UserDefaults.standard.integer(forKey: "secondInterval")
+        }
+        set{ UserDefaults.standard.set(newValue, forKey: "secondInterval")}
+    }
+    var amountOfPhotos: Int {
+        get{
+            if UserDefaults.standard.integer(forKey: "amountOfPhotos") == 0{
+                return 50
+            }
+            return UserDefaults.standard.integer(forKey: "amountOfPhotos")}
+        set{UserDefaults.standard.set(newValue, forKey: "amountOfPhotos")}
+    }
+    var continuous: Bool {
+        get{return UserDefaults.standard.bool(forKey: "continuous")}
+        set{UserDefaults.standard.set(newValue, forKey: "continuous")}
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
     }
@@ -35,6 +57,7 @@ class PickerViewController: UIViewController , UIPickerViewDelegate , UIPickerVi
             
         }
         pickerViewList2.append("BULB")
+        
         
     }
     

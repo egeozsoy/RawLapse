@@ -318,19 +318,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    //MARK: viewWillApper
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
+    override func viewDidLoad() {
+        super.viewDidLoad()
         self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingTap(_:))))
         let leftSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
         leftSwipeRecognizer.direction = .left
         let rightSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
         rightSwipeRecognizer.direction = .right
-        
+
         self.view.addGestureRecognizer(leftSwipeRecognizer)
         self.view.addGestureRecognizer(rightSwipeRecognizer)
-        
+
         checkCameraAuthorization { (error) in
             DispatchQueue.main.async {
                 self.keepLabelsUpToDate()
@@ -344,19 +342,15 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         checkPhotoLibraryAuthorization {(error) in}
         //        allows buttons to change orientation
         NotificationCenter.default.addObserver(self, selector: #selector(newOrientation), name: Notification.Name.UIDeviceOrientationDidChange, object: nil)
-        
+
         addViews()
         setupUI()
-        
+
         startBrightness = UIScreen.main.brightness
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
+        
         Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { (myTimer) in
             self.toggleRawButton()
         }
-        
     }
     
     //    changes button orientation
@@ -420,7 +414,20 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             startBrightness = UIScreen.main.brightness
         }
         
-        UIScreen.main.brightness = 0.0
+        if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
+            if settingsDic["Screen Diming"] == true {
+                UIScreen.main.brightness = 0.0
+            }
+            else{
+                
+            }
+            
+        }else{
+            UIScreen.main.brightness = 0.0
+        }
+        
+        
+        
         if(activeTimelapse == false){
             activeTimelapse = true
             toggleProximitySensor()
@@ -643,7 +650,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     @objc func showPrivacyPolicy(){
-        showAlert(withTitle: "Privacy Policy", withMessage: " RawLapse does not upload or permanently store any photos taken within the app. We don't collect any user data, and the app does not use internet at all. All the required permissions are needed to take and save the photos locally.")
+        let tablecontroller =  SettingsTableViewController()
+        let navController = UINavigationController(rootViewController: tablecontroller)
+        navController.navigationBar.barTintColor = UIColor.black
+        navController.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white]
+        present(navController, animated: true, completion: nil)
+        
+//        showAlert(withTitle: "Privacy Policy", withMessage: " RawLapse does not upload or permanently store any photos taken within the app. We don't collect any user data, and the app does not use internet at all. All the required permissions are needed to take and save the photos locally.")
     }
     
     func addViews(){
