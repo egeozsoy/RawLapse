@@ -353,11 +353,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { (myTimer) in
+            self.toggleRawButton()
+        }
+        
     }
     
     //    changes button orientation
     @objc func newOrientation(notification: Notification){
-        print("rotation change")
         var angle: Double
         switch UIDevice.current.orientation {
         case UIDeviceOrientation.landscapeLeft:
@@ -398,7 +401,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
             else{
                 if rawNotSupportedOnDevice(){
-                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos")
+                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos, you can still you RawLapse for taking JPEG photos")
                 }
                 else{
                     rawButton?.isSelected = true
@@ -741,6 +744,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor).isActive = true
         photoCounterLabel.widthAnchor.constraint(equalToConstant: 100).isActive = true
         photoCounterLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
+   
     }
 }
 
