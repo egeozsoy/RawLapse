@@ -93,14 +93,14 @@
 			children = (
 				252A73411F9A40C700BBD45A /* AppDelegate.swift */,
 				252A73431F9A40C700BBD45A /* CameraViewController.swift */,
-				258B6F821FA3426D00AE4BA5 /* Feature Implementation Code.swift */,
-				252A736F1F9A412B00BBD45A /* Hud.swift */,
 				25818E841FB8C82B000BF1F2 /* SettingsTableViewController.swift */,
+				252A736F1F9A412B00BBD45A /* Hud.swift */,
 				25DC9C681F9C824900FBF703 /* PickerViewController.swift */,
 				252A73451F9A40C700BBD45A /* Main.storyboard */,
 				252A73481F9A40C700BBD45A /* Assets.xcassets */,
 				252A734A1F9A40C700BBD45A /* LaunchScreen.storyboard */,
 				252A734D1F9A40C700BBD45A /* Info.plist */,
+				258B6F821FA3426D00AE4BA5 /* Feature Implementation Code.swift */,
 			);
 			path = RawLapse;
 			sourceTree = "<group>";

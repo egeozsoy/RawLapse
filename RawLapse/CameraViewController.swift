@@ -178,17 +178,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             print("no preview layer")
             return
         }
-        cameraPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspect
-        if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft{
-            cameraPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeRight
-        }
-        else if UIDevice.current.orientation == UIDeviceOrientation.landscapeRight {
-            cameraPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeLeft
-        }
-        else{
-            cameraPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
-        }
-        
+        cameraPreviewLayer.videoGravity = .resizeAspect
         cameraPreviewLayer.frame = self.view.frame
         self.view.layer.insertSublayer(cameraPreviewLayer, at: 0)
         let  x = cameraPreviewLayer.frame.minX
@@ -325,10 +315,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         leftSwipeRecognizer.direction = .left
         let rightSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
         rightSwipeRecognizer.direction = .right
-
+        
         self.view.addGestureRecognizer(leftSwipeRecognizer)
         self.view.addGestureRecognizer(rightSwipeRecognizer)
-
+        
         checkCameraAuthorization { (error) in
             DispatchQueue.main.async {
                 self.keepLabelsUpToDate()
@@ -342,10 +332,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         checkPhotoLibraryAuthorization {(error) in}
         //        allows buttons to change orientation
         NotificationCenter.default.addObserver(self, selector: #selector(newOrientation), name: Notification.Name.UIDeviceOrientationDidChange, object: nil)
-
+        
         addViews()
         setupUI()
-
+        
         startBrightness = UIScreen.main.brightness
         
         Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { (myTimer) in
@@ -475,9 +465,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         currentDevice = .current
         var deviceOrientation: UIDeviceOrientation
         deviceOrientation = currentDevice.orientation
-
+        
         var imageOrientation: AVCaptureVideoOrientation
-
+        
         if deviceOrientation == .portrait {
             imageOrientation = .portrait
         }else if (deviceOrientation == .landscapeLeft){
@@ -656,7 +646,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         navController.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white]
         present(navController, animated: true, completion: nil)
         
-//        showAlert(withTitle: "Privacy Policy", withMessage: " RawLapse does not upload or permanently store any photos taken within the app. We don't collect any user data, and the app does not use internet at all. All the required permissions are needed to take and save the photos locally.")
+        //        showAlert(withTitle: "Privacy Policy", withMessage: " RawLapse does not upload or permanently store any photos taken within the app. We don't collect any user data, and the app does not use internet at all. All the required permissions are needed to take and save the photos locally.")
     }
     
     func addViews(){
@@ -757,7 +747,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor).isActive = true
         photoCounterLabel.widthAnchor.constraint(equalToConstant: 100).isActive = true
         photoCounterLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
-   
+        
     }
 }
 

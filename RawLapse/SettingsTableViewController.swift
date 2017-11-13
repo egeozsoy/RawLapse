@@ -28,7 +28,7 @@ class SettingsTableViewController: UITableViewController {
             settingsDic = [String:Bool]()
         }
     }
-
+    
     @objc func dismissing(){
         UserDefaults.standard.set(settingsDic, forKey: "settinsgDic")
         navigationController?.dismiss(animated: true, completion: nil)
@@ -38,7 +38,7 @@ class SettingsTableViewController: UITableViewController {
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return settingsArray.count
     }
@@ -58,7 +58,7 @@ class SettingsTableViewController: UITableViewController {
         settingActive.onTintColor = UIColor.white
         settingActive.thumbTintColor = UIColor.orange
         settingActive.addTarget(self, action: #selector(changesOccured), for: .valueChanged)
-    
+        
         cell.accessoryView = settingActive
         cell.settingName.text = settingsArray[indexPath.row]
         if let settingsDic = settingsDic {
@@ -69,7 +69,7 @@ class SettingsTableViewController: UITableViewController {
                 settingActive.isOn = false
             }
         }else{
-             settingActive.isOn = false
+            settingActive.isOn = false
         }
         
         cell.selectionStyle = .none
