@@ -385,9 +385,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
             else{
                 if rawNotSupportedOnDevice(){
-                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos, you can still you RawLapse for taking JPEG photos")
+                    rawButton?.isEnabled = false
+//                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos, you can still you RawLapse for taking JPEG photos")
                 }
                 else{
+                    rawButton?.isEnabled = true
                     rawButton?.isSelected = true
                 }
             }
@@ -685,6 +687,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         rawButton?.setTitle("RAW", for: .normal)
         rawButton?.setTitleColor(UIColor.white, for: .normal)
         rawButton?.setTitleColor(UIColor.orange, for: .selected)
+        rawButton?.setTitleColor(disabledColor, for: .disabled)
         rawButton?.addTarget(self, action: #selector(toggleRawButton), for: .touchUpInside)
         rawButton?.translatesAutoresizingMaskIntoConstraints = false
         

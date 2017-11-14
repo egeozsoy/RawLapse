@@ -28,6 +28,10 @@ class SettingsTableViewController: UITableViewController {
             settingsDic = [String:Bool]()
         }
     }
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
+    
     
     @objc func dismissing(){
         UserDefaults.standard.set(settingsDic, forKey: "settinsgDic")
