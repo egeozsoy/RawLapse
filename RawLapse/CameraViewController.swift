@@ -175,7 +175,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     func setupPreviewLayer(){
         cameraPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         guard let cameraPreviewLayer = cameraPreviewLayer else{
-            print("no preview layer")
             return
         }
         cameraPreviewLayer.videoGravity = .resizeAspect
@@ -327,6 +326,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 self.setupInputOutput()
                 self.setupPreviewLayer()
                 self.startRunningCaptureSession()
+                self.toggleRawButton()
             }
         }
         checkPhotoLibraryAuthorization {(error) in}
@@ -338,9 +338,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         startBrightness = UIScreen.main.brightness
         
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { (myTimer) in
-            self.toggleRawButton()
-        }
     }
     
     //    changes button orientation
@@ -386,7 +383,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             else{
                 if rawNotSupportedOnDevice(){
                     rawButton?.isEnabled = false
-//                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos, you can still you RawLapse for taking JPEG photos")
+//                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos, you can still use RawLapse for taking JPEG photos")
                 }
                 else{
                     rawButton?.isEnabled = true
