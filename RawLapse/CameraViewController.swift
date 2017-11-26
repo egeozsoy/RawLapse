@@ -56,7 +56,20 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var uuid: String?
     var labelUpdateTimer: Timer?
     
+    let ruleOfThirdsViewer: UIImageView  = {
+        let imageviewer = UIImageView()
+        var image = UIImage(named: "ruleOfThirdsGrid")
+        
+        
+        imageviewer.image = image
+        imageviewer.translatesAutoresizingMaskIntoConstraints = false
+        return imageviewer
+    }()
+    
+    
+    
     let disabledColor = UIColor.init(white: 0.5, alpha: 0.5)
+    
     
     let shutterButton: UIButton = {
         let button = UIButton()
@@ -186,6 +199,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         let wantedHeight = cameraPreviewLayer.frame.width * 4/3
         let y = (height - wantedHeight)/2
         cameraPreviewLayerFrame = CGRect(x: x, y: y, width: width , height: wantedHeight)
+        setRuleOfThirdsViewer()
+        
+        
     }
     
     func startRunningCaptureSession(){
@@ -309,6 +325,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        myLoad()
+        
+    }
+    func myLoad(){
         self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingTap(_:))))
         let leftSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
         leftSwipeRecognizer.direction = .left
@@ -337,7 +357,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         setupUI()
         
         startBrightness = UIScreen.main.brightness
-        
     }
     
     //    changes button orientation
@@ -638,6 +657,22 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         lockUnlockExposureFocus(toggleExposure: false, toggleFocus: true)
     }
     
+    func setRuleOfThirdsViewer(){
+        
+        if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
+            if settingsDic["ruleOfThirds"] == true {
+                self.view.addSubview(ruleOfThirdsViewer)
+                ruleOfThirdsViewer.heightAnchor.constraint(equalToConstant: cameraPreviewLayerFrame!.height ).isActive = true
+                ruleOfThirdsViewer.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
+                ruleOfThirdsViewer.leftAnchor.constraint(equalTo: self.view.leftAnchor).isActive = true
+                ruleOfThirdsViewer.rightAnchor.constraint(equalTo: self.view.rightAnchor).isActive = true
+            }
+            else {
+                ruleOfThirdsViewer.removeFromSuperview()
+            }
+    }
+    }
+    
     @objc func showPrivacyPolicy(){
         let tablecontroller =  SettingsTableViewController()
         let navController = UINavigationController(rootViewController: tablecontroller)
@@ -663,6 +698,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         slimTopBar.addSubview(privacyPolicyButton!)
         bottomBar.addSubview(settingsTextView)
         bottomBar.addSubview(photoCounterLabel)
+        
+        
     }
     
     func setButtons(){
@@ -731,7 +768,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         bottomBar.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor , constant:0).isActive = true
         bottomBar.rightAnchor.constraint(equalTo: self.view.rightAnchor).isActive = true
         bottomBar.leftAnchor.constraint(equalTo: self.view.leftAnchor).isActive = true
-        bottomBar.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        bottomBar.heightAnchor.constraint(equalToConstant: 88).isActive = true
         
         shutterButton.centerXAnchor.constraint(equalTo: bottomBar.centerXAnchor).isActive = true
         shutterButton.centerYAnchor.constraint(equalTo: bottomBar.centerYAnchor).isActive = true
@@ -747,6 +784,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor).isActive = true
         photoCounterLabel.widthAnchor.constraint(equalToConstant: 100).isActive = true
         photoCounterLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
     }
 }

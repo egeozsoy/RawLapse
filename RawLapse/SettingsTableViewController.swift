@@ -12,13 +12,14 @@ class SettingsTableViewController: UITableViewController {
     let cellId = "cellId"
     let screenDiming = "Screen Diming"
     let rawPhoto = "RawPhoto"
-    
-    lazy var settingsArray = [screenDiming , rawPhoto]
+    let ruleOfThirds = "ruleOfThirds"
+    lazy var settingsArray = [screenDiming , rawPhoto , ruleOfThirds]
     lazy var settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String: Bool]
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.register(settingCell.self, forCellReuseIdentifier: cellId)
         self.view.backgroundColor = UIColor.black
+        
         self.navigationItem.title = "Settings"
         let buttonItem = UIBarButtonItem(title: "OK", style: .plain, target: self, action: #selector(dismissing))
         buttonItem.tintColor = UIColor.white
@@ -35,7 +36,12 @@ class SettingsTableViewController: UITableViewController {
     
     @objc func dismissing(){
         UserDefaults.standard.set(settingsDic, forKey: "settinsgDic")
-        navigationController?.dismiss(animated: true, completion: nil)
+        navigationController?.dismiss(animated: true) {
+            let delegate = UIApplication.shared.delegate as! AppDelegate
+            delegate.cameraViewController.setRuleOfThirdsViewer()
+            
+        }
+        
     }
     
     // MARK: - Table view data source
