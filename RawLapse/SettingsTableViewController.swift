@@ -11,9 +11,8 @@ import UIKit
 class SettingsTableViewController: UITableViewController {
     let cellId = "cellId"
     let screenDiming = "Screen Diming"
-    let rawPhoto = "RawPhoto"
     let ruleOfThirds = "ruleOfThirds"
-    lazy var settingsArray = [screenDiming , rawPhoto , ruleOfThirds]
+    lazy var settingsArray = [screenDiming, ruleOfThirds]
     lazy var settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String: Bool]
     override func viewDidLoad() {
         super.viewDidLoad()

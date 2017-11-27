@@ -175,6 +175,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         else{
             photoSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey : AVVideoCodecType.jpeg])
+            
         }
         guard let pSettings = photoSettings else{
             return
@@ -296,7 +297,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         else{
             device.isProximityMonitoringEnabled = false
-            NotificationCenter.default.removeObserver(self)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
         }
     }
     
@@ -325,10 +326,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        myLoad()
-        
-    }
-    func myLoad(){
         self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingTap(_:))))
         let leftSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
         leftSwipeRecognizer.direction = .left
@@ -357,6 +354,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         setupUI()
         
         startBrightness = UIScreen.main.brightness
+        
     }
     
     //    changes button orientation
@@ -479,6 +477,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     func managePhotoOrientation() -> AVCaptureVideoOrientation {
+        
         var currentDevice: UIDevice
         currentDevice = .current
         var deviceOrientation: UIDeviceOrientation
