@@ -9,8 +9,9 @@
 import UIKit
 
 class SettingsTableViewController: UITableViewController {
+    
     let cellId = "cellId"
-    let screenDiming = "Screen Diming"
+    let screenDiming = "Screen Dimming"
     let ruleOfThirds = "ruleOfThirds"
     lazy var settingsArray = [screenDiming, ruleOfThirds]
     lazy var settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String: Bool]
