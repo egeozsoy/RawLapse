@@ -352,9 +352,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         addViews()
         setupUI()
-        
         startBrightness = UIScreen.main.brightness
-        
     }
     
     //    changes button orientation
@@ -440,7 +438,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             shutterButton.tintColor = UIColor.red
             //            how to use the timer
             if let secondInterval = secondInterval {
+//                timelapseTimer = Timer.init(timeInterval: TimeInterval(secondInterval), repeats: true, block: <#T##(Timer) -> Void#>)
                 timelapseTimer =  Timer.scheduledTimer(withTimeInterval: TimeInterval(secondInterval), repeats: true) { (timer) in
+                    self.timelapseTimer?.tolerance = 0.3
                     
                     if let amountOfPhotos = self.amountOfPhotos  , let continuous = self.continuous{
                         if(self.photoCounter <= amountOfPhotos || continuous){
@@ -783,17 +783,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor).isActive = true
         photoCounterLabel.widthAnchor.constraint(equalToConstant: 100).isActive = true
         photoCounterLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
     }
 }
 
