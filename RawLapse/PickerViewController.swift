@@ -20,7 +20,7 @@ class PickerViewController: UIViewController , UIPickerViewDelegate , UIPickerVi
     var secondInterval:Int {
         get{
             if UserDefaults.standard.integer(forKey: "secondInterval") == 0{
-                return 3
+                return 1
             }
             return UserDefaults.standard.integer(forKey: "secondInterval")
         }
@@ -29,7 +29,7 @@ class PickerViewController: UIViewController , UIPickerViewDelegate , UIPickerVi
     var amountOfPhotos: Int {
         get{
             if UserDefaults.standard.integer(forKey: "amountOfPhotos") == 0{
-                return 50
+                return 10
             }
             return UserDefaults.standard.integer(forKey: "amountOfPhotos")}
         set{UserDefaults.standard.set(newValue, forKey: "amountOfPhotos")}

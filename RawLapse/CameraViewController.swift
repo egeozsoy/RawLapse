@@ -88,6 +88,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         tv.backgroundColor = UIColor.clear
         tv.textColor = UIColor.white
         tv.textAlignment = .center
+        tv.isSelectable = false
         tv.translatesAutoresizingMaskIntoConstraints = false
         return tv
     }()
@@ -398,13 +399,18 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             else{
                 if rawNotSupportedOnDevice(){
                     rawButton?.isEnabled = false
-//                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos, you can still use RawLapse for taking JPEG photos")
+                    //                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos, you can still use RawLapse for taking JPEG photos")
                 }
                 else{
                     rawButton?.isEnabled = true
                     rawButton?.isSelected = true
                 }
             }
+        }
+    }
+    func fixBrightness(){
+        if let brightness = self.startBrightness {
+            UIScreen.main.brightness = brightness
         }
     }
     
@@ -419,18 +425,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         
         if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
-            if settingsDic["Screen Diming"] == true {
+            if settingsDic["Screen Dimming"] == true{
                 UIScreen.main.brightness = 0.0
             }
-            else{
-                
-            }
-            
-        }else{
-            UIScreen.main.brightness = 0.0
         }
-        
-        
         
         if(activeTimelapse == false){
             activeTimelapse = true
@@ -438,12 +436,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             shutterButton.tintColor = UIColor.red
             //            how to use the timer
             if let secondInterval = secondInterval {
-//                timelapseTimer = Timer.init(timeInterval: TimeInterval(secondInterval), repeats: true, block: <#T##(Timer) -> Void#>)
                 timelapseTimer =  Timer.scheduledTimer(withTimeInterval: TimeInterval(secondInterval), repeats: true) { (timer) in
                     self.timelapseTimer?.tolerance = 0.3
-                    
+                    //check too many photos bug
                     if let amountOfPhotos = self.amountOfPhotos  , let continuous = self.continuous{
-                        if(self.photoCounter <= amountOfPhotos || continuous){
+                        if(self.photoCounter < amountOfPhotos || continuous){
                             self.takePhoto()
                             self.photoCounter += 1;
                             self.updateLabels()
@@ -453,12 +450,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                         }
                         else{
                             self.timelapseTimer?.invalidate();
-                            if let brightness = self.startBrightness {
-                                UIScreen.main.brightness = brightness
-                            }
+                            self.fixBrightness()
                             self.activeTimelapse = false;
                             self.shutterButton.tintColor = UIColor.white
                             self.toggleProximitySensor()
+                            self.photoCounter = 0
                             return;
                         }
                     }
@@ -468,9 +464,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             activeTimelapse = false;
             toggleProximitySensor()
             shutterButton.tintColor = UIColor.white
-            if let brightness = self.startBrightness {
-                UIScreen.main.brightness = brightness
-            }
+            self.fixBrightness()
+            self.photoCounter = 0
             timelapseTimer?.invalidate();
             return ;
         }
@@ -669,7 +664,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             else {
                 ruleOfThirdsViewer.removeFromSuperview()
             }
-    }
+        }
     }
     
     @objc func showPrivacyPolicy(){
@@ -703,14 +698,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func setButtons(){
         lockAEButton = UIButton()
-        lockAEButton?.setTitle("AE", for: .normal)
+        lockAEButton?.setTitle("AEL", for: .normal)
         lockAEButton?.setTitleColor(UIColor.white, for: .normal)
         lockAEButton?.setTitleColor(UIColor.orange, for: UIControlState.selected)
         lockAEButton?.addTarget(self, action: #selector(toggleLockAEButton), for: .touchUpInside)
         lockAEButton?.translatesAutoresizingMaskIntoConstraints = false
         
         lockFocusButton = UIButton()
-        lockFocusButton?.setTitle("AF", for: .normal)
+        lockFocusButton?.setTitle("AFL", for: .normal)
         lockFocusButton?.setTitleColor(UIColor.white, for: .normal)
         lockFocusButton?.setTitleColor(UIColor.orange, for: .selected)
         lockFocusButton?.addTarget(self, action: #selector(toggleLockFocusButton), for: .touchUpInside)
