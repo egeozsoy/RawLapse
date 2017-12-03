@@ -50,10 +50,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var continuous: Bool?
     
     var buttonsSet = false
+    let createVideo = false
     
     var startBrightness : CGFloat?
-    
-    var screenDimming = false
     
     var images = [UIImage]()
     
@@ -254,7 +253,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    
     func handleExposureFocusTap(_ tap : UITapGestureRecognizer , changeExposure exposureNotLocked: Bool , changeFocus focusNotLocked:Bool){
         guard let cameraPreviewLayerFrame = cameraPreviewLayerFrame else{
             print("no preview layer")
@@ -318,9 +316,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         if device?.proximityState == true && activeTimelapse == true{
             UIScreen.main.brightness = 1.0
             Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { (timer) in
-                if self.screenDimming {
-                UIScreen.main.brightness = 0.0
-                }
+                self.dimScreen()
             })
         }
     }
@@ -431,6 +427,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
+    func dimScreen(){
+        if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
+            if settingsDic["Screen Dimming"] == true{
+                UIScreen.main.brightness = 0.0
+            }
+        }
+    }
+    
     @objc func startTimelapse(){
         setupRawJpeg(rawSupported: rawButton!.isSelected)
         
@@ -440,13 +444,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         if startBrightness == nil{
             startBrightness = UIScreen.main.brightness
         }
-        
-        if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
-            if settingsDic["Screen Dimming"] == true{
-                UIScreen.main.brightness = 0.0
-                screenDimming = true
-            }
-        }
+        dimScreen()
         
         if(activeTimelapse == false){
             activeTimelapse = true
@@ -463,48 +461,43 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                             self.photoCounter += 1;
                             self.updateLabels()
                             if(amountOfPhotos % 10 == 0){
-                                if self.screenDimming {
-                                UIScreen.main.brightness = 0.0
-                                }
+                                self.dimScreen()
                             }
                         }
                         else{
-                            self.timelapseTimer?.invalidate();
-                            self.fixBrightness()
-                            self.activeTimelapse = false;
-                            self.shutterButton.tintColor = UIColor.white
-                            self.toggleProximitySensor()
-                            self.photoCounter = 0
-                            Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
-                                let settings = RenderSettings()
-                                let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
-                                imageAnimator.render() {
-                                    print("yes")
-                                    self.images.removeAll()
-                                }
-                            })
-                            return;
+                            self.stopTimeLapse();
+                            
                         }
                     }
                 }
             }
         }else{
-            activeTimelapse = false;
-            toggleProximitySensor()
-            shutterButton.tintColor = UIColor.white
-            self.fixBrightness()
-            self.photoCounter = 0
-            timelapseTimer?.invalidate();
-            Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
-                let settings = RenderSettings()
-                let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
-                imageAnimator.render() {
-                    print("yes")
-                    self.images.removeAll()
-                }
-            })
-            return ;
+            stopTimeLapse();
         }
+    }
+    
+    func stopTimeLapse(){
+        timelapseTimer?.invalidate();
+        self.fixBrightness()
+        activeTimelapse = false;
+        shutterButton.tintColor = UIColor.white
+        toggleProximitySensor()
+        self.photoCounter = 0
+        if createVideo {
+            createVideoFromImages()
+        }
+        return ;
+    }
+    
+    func createVideoFromImages(){
+        Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
+            let settings = RenderSettings()
+            let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
+            imageAnimator.render() {
+                print("yes")
+                self.images.removeAll()
+            }
+        })
     }
     
     func managePhotoOrientation() -> AVCaptureVideoOrientation {
@@ -535,7 +528,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             photoOutput?.connection(with: AVMediaType.video)?.videoOrientation = managePhotoOrientation()
             let uniqueSettings = AVCapturePhotoSettings.init(from: photoSettings)
             self.photoOutput?.capturePhoto(with: uniqueSettings, delegate: self)
-            
         }
     }
     
@@ -615,22 +607,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
             else{
                 do {
-//                    try self.jpegPhotoData!.write(to: dngFileURL)
-//                    let mydata = try Data.init(contentsOf: dngFileURL)
-//                    let mynewUIImage = UIImage(data: mydata)
+                    /*
+                    try self.jpegPhotoData!.write(to: dngFileURL)
+                    let mydata = try Data.init(contentsOf: dngFileURL)
+                    let mynewUIImage = UIImage(data: mydata)
+                    let myciimage = CIImage(data: mydata)
+                    let mynewUIImage = UIImage(ciImage: myciimage!, scale: 1.0, orientation: UIImageOrientation.left)
+                    */
                     let mynewUIImage = UIImage(data: self.jpegPhotoData!)
-//                    let myciimage = CIImage(data: mydata)
-                    
-//                    let mynewUIImage = UIImage(ciImage: myciimage!, scale: 1.0, orientation: UIImageOrientation.left)
-                    
                     self.images.append(mynewUIImage!)
                 }
-                catch{
-                    
-                }
-                
-                
-               
+                catch{}
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
             }
         }, completionHandler: nil)
@@ -723,7 +710,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    @objc func showPrivacyPolicy(){
+    @objc func showSettingsPage(){
         let tablecontroller =  SettingsTableViewController()
         let navController = UINavigationController(rootViewController: tablecontroller)
         navController.navigationBar.barTintColor = UIColor.black
@@ -748,8 +735,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         slimTopBar.addSubview(privacyPolicyButton!)
         bottomBar.addSubview(settingsTextView)
         bottomBar.addSubview(photoCounterLabel)
-        
-        
     }
     
     func setButtons(){
@@ -778,7 +763,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         privacyPolicyButton = UIButton()
         privacyPolicyButton?.setTitle("i", for: .normal)
         privacyPolicyButton?.setTitleColor(UIColor.white, for: .normal)
-        privacyPolicyButton?.addTarget(self, action: #selector(showPrivacyPolicy), for: .touchUpInside)
+        privacyPolicyButton?.addTarget(self, action: #selector(showSettingsPage), for: .touchUpInside)
         privacyPolicyButton?.translatesAutoresizingMaskIntoConstraints = false
         
     }
