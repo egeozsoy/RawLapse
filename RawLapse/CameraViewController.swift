@@ -53,6 +53,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     var startBrightness : CGFloat?
     
+    var images = [UIImage]()
+    
     var uuid: String?
     var labelUpdateTimer: Timer?
     
@@ -138,31 +140,38 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func setupDevice(){
         let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
+        
         let device = deviceDiscoverySession.devices.first
         currentCamera = device
     }
     
     func setupInputOutput(){
         do{
-            guard let currentCamera = currentCamera else {
-                shutterButton.tintColor = disabledColor
-                showAlert(withTitle: "No Camera", withMessage: "Make sure your device supports a camera")
+            guard let currentCamera = self.currentCamera else {
+                self.shutterButton.tintColor = self.disabledColor
+                self.showAlert(withTitle: "No Camera", withMessage: "Make sure your device supports a camera")
                 return
             }
             let captureDeviceInput = try AVCaptureDeviceInput(device: currentCamera)
             guard self.captureSession.canAddInput(captureDeviceInput) else { return }
-            captureSession.addInput(captureDeviceInput)
+            self.captureSession.addInput(captureDeviceInput)
             
-            photoOutput = AVCapturePhotoOutput()
-            guard self.captureSession.canAddOutput(photoOutput!) else { return }
-            captureSession.addOutput(photoOutput!)
+            self.photoOutput = AVCapturePhotoOutput()
+            guard self.captureSession.canAddOutput(self.photoOutput!) else { return }
+            self.captureSession.addOutput(self.photoOutput!)
             
             try? currentCamera.lockForConfiguration()
-            //            forces maximum shutter speed for best lowlight
+            
             currentCamera.setExposureModeCustom(duration: currentCamera.activeFormat.maxExposureDuration, iso: currentCamera.activeFormat.minISO, completionHandler: nil)
             currentCamera.exposureMode = .continuousAutoExposure
             currentCamera.unlockForConfiguration()
-        }catch{}
+            self.updateLabels()
+            
+        }catch let error {
+            
+            print(error)
+        }
+        
     }
     
     //    how to setup photoSettings
@@ -335,16 +344,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         self.view.addGestureRecognizer(leftSwipeRecognizer)
         self.view.addGestureRecognizer(rightSwipeRecognizer)
-        
         checkCameraAuthorization { (error) in
             DispatchQueue.main.async {
                 self.keepLabelsUpToDate()
                 self.setupCaptureSession()
                 self.setupDevice()
-                self.setupInputOutput()
                 self.setupPreviewLayer()
                 self.startRunningCaptureSession()
+                self.setupInputOutput()
                 self.toggleRawButton()
+                
             }
         }
         checkPhotoLibraryAuthorization {(error) in}
@@ -354,6 +363,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         addViews()
         setupUI()
         startBrightness = UIScreen.main.brightness
+        
     }
     
     //    changes button orientation
@@ -455,6 +465,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                             self.shutterButton.tintColor = UIColor.white
                             self.toggleProximitySensor()
                             self.photoCounter = 0
+                            Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
+                                let settings = RenderSettings()
+                                let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
+                                imageAnimator.render() {
+                                    print("yes")
+                                }
+                            })
                             return;
                         }
                     }
@@ -467,6 +484,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             self.fixBrightness()
             self.photoCounter = 0
             timelapseTimer?.invalidate();
+            Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
+                let settings = RenderSettings()
+                let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
+                imageAnimator.render() {
+                    print("yes")
+                }
+            })
             return ;
         }
     }
@@ -527,11 +551,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             appendString = "\(photoCounter)"
         }
         if let newUuid = uuid{
-            let saveString = "IMG-" + newUuid + appendString + ".dng"
+            let saveString = "IMG-" + newUuid + appendString + ".jpg"
             return cachesDirectory().appendingPathComponent(saveString)
         }
         else {
-            let saveString = "IMG-" + appendString + ".dng"
+            let saveString = "IMG-" + appendString + ".jpg"
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
     
@@ -572,9 +596,24 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             creationOptions.shouldMoveFile = true
             
             if rawPreferred{
+                /*
+                convert raw to jpeg
+                */
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
             else{
+                do {
+                    try self.jpegPhotoData!.write(to: dngFileURL)
+                    let mydata = try Data.init(contentsOf: dngFileURL)
+                    let mynewUIImage = UIImage(data: mydata)
+                    self.images.append(mynewUIImage!)
+                }
+                catch{
+                    
+                }
+                
+                
+               
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
             }
         }, completionHandler: nil)

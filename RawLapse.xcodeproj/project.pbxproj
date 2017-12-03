@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2510FD511FD3574400FE9B7E /* ImagesToVideo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2510FD501FD3574400FE9B7E /* ImagesToVideo.swift */; };
 		252A73421F9A40C700BBD45A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252A73411F9A40C700BBD45A /* AppDelegate.swift */; };
 		252A73441F9A40C700BBD45A /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252A73431F9A40C700BBD45A /* CameraViewController.swift */; };
 		252A73471F9A40C700BBD45A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 252A73451F9A40C700BBD45A /* Main.storyboard */; };
@@ -36,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2510FD501FD3574400FE9B7E /* ImagesToVideo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesToVideo.swift; sourceTree = "<group>"; };
 		252A73411F9A40C700BBD45A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		252A73431F9A40C700BBD45A /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
 		252A73461F9A40C700BBD45A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -93,6 +95,7 @@
 			children = (
 				252A73411F9A40C700BBD45A /* AppDelegate.swift */,
 				252A73431F9A40C700BBD45A /* CameraViewController.swift */,
+				2510FD501FD3574400FE9B7E /* ImagesToVideo.swift */,
 				25818E841FB8C82B000BF1F2 /* SettingsTableViewController.swift */,
 				252A736F1F9A412B00BBD45A /* Hud.swift */,
 				25DC9C681F9C824900FBF703 /* PickerViewController.swift */,
@@ -245,6 +248,7 @@
 				252A73441F9A40C700BBD45A /* CameraViewController.swift in Sources */,
 				258B6F831FA3426D00AE4BA5 /* Feature Implementation Code.swift in Sources */,
 				25818E851FB8C82B000BF1F2 /* SettingsTableViewController.swift in Sources */,
+				2510FD511FD3574400FE9B7E /* ImagesToVideo.swift in Sources */,
 				252A73421F9A40C700BBD45A /* AppDelegate.swift in Sources */,
 				25DC9C691F9C824900FBF703 /* PickerViewController.swift in Sources */,
 				252A73701F9A412B00BBD45A /* Hud.swift in Sources */,
