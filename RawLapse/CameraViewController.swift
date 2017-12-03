@@ -53,6 +53,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     var startBrightness : CGFloat?
     
+    var screenDimming = false
+    
     var images = [UIImage]()
     
     var uuid: String?
@@ -316,7 +318,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         if device?.proximityState == true && activeTimelapse == true{
             UIScreen.main.brightness = 1.0
             Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { (timer) in
+                if self.screenDimming {
                 UIScreen.main.brightness = 0.0
+                }
             })
         }
     }
@@ -327,10 +331,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    func stopUpdateTimer(){
+    func startStopUpdateTimer(){
         if labelUpdateTimer != nil{
             labelUpdateTimer?.invalidate()
             labelUpdateTimer = nil
+        }
+        else {
+            keepLabelsUpToDate()
         }
     }
     
@@ -437,6 +444,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
             if settingsDic["Screen Dimming"] == true{
                 UIScreen.main.brightness = 0.0
+                screenDimming = true
             }
         }
         
@@ -455,7 +463,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                             self.photoCounter += 1;
                             self.updateLabels()
                             if(amountOfPhotos % 10 == 0){
+                                if self.screenDimming {
                                 UIScreen.main.brightness = 0.0
+                                }
                             }
                         }
                         else{
@@ -470,6 +480,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                                 let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
                                 imageAnimator.render() {
                                     print("yes")
+                                    self.images.removeAll()
                                 }
                             })
                             return;
@@ -489,6 +500,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
                 imageAnimator.render() {
                     print("yes")
+                    self.images.removeAll()
                 }
             })
             return ;
@@ -551,11 +563,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             appendString = "\(photoCounter)"
         }
         if let newUuid = uuid{
-            let saveString = "IMG-" + newUuid + appendString + ".jpg"
+            let saveString = "IMG-" + newUuid + appendString + ".dng"
             return cachesDirectory().appendingPathComponent(saveString)
         }
         else {
-            let saveString = "IMG-" + appendString + ".jpg"
+            let saveString = "IMG-" + appendString + ".dng"
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
     
@@ -603,9 +615,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
             else{
                 do {
-                    try self.jpegPhotoData!.write(to: dngFileURL)
-                    let mydata = try Data.init(contentsOf: dngFileURL)
-                    let mynewUIImage = UIImage(data: mydata)
+//                    try self.jpegPhotoData!.write(to: dngFileURL)
+//                    let mydata = try Data.init(contentsOf: dngFileURL)
+//                    let mynewUIImage = UIImage(data: mydata)
+                    let mynewUIImage = UIImage(data: self.jpegPhotoData!)
+//                    let myciimage = CIImage(data: mydata)
+                    
+//                    let mynewUIImage = UIImage(ciImage: myciimage!, scale: 1.0, orientation: UIImageOrientation.left)
+                    
                     self.images.append(mynewUIImage!)
                 }
                 catch{

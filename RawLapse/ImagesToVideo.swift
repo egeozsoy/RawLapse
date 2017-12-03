@@ -15,8 +15,8 @@ class ImagesToVideo: NSObject {
 
 struct RenderSettings {
     
-    var width: CGFloat = 3840
-    var height: CGFloat = 2160
+    var width: CGFloat = 4032
+    var height: CGFloat = 3024
     var fps: Int32 = 24   // 2 frames per second
     var avCodecKey = AVVideoCodecType.h264
     var videoFilename = "Timelapse"
@@ -53,7 +53,9 @@ class ImageAnimator {
             guard status == .authorized else { return }
             
             PHPhotoLibrary.shared().performChanges({
+                
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: videoURL as URL)
+                
             }) { success, error in
                 if !success {
                     print("Could not save video to photo library:", error)
@@ -85,6 +87,7 @@ class ImageAnimator {
         videoWriter.start()
         videoWriter.render(appendPixelBuffers: appendPixelBuffers) {
             ImageAnimator.saveToLibrary(videoURL: self.settings.outputURL)
+        
             completion()
         }
         
