@@ -327,13 +327,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    func startStopUpdateTimer(){
+    func startUpdateTimer(){
+        if labelUpdateTimer == nil {
+            keepLabelsUpToDate()
+        }
+    }
+    
+    func stopUpdateTimer(){
         if labelUpdateTimer != nil{
             labelUpdateTimer?.invalidate()
             labelUpdateTimer = nil
-        }
-        else {
-            keepLabelsUpToDate()
         }
     }
     
@@ -483,22 +486,26 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         shutterButton.tintColor = UIColor.white
         toggleProximitySensor()
         self.photoCounter = 0
+        /*
         if createVideo {
             createVideoFromImages()
         }
+        */
         return ;
     }
-    
-    func createVideoFromImages(){
-        Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
-            let settings = RenderSettings()
-            let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
-            imageAnimator.render() {
-                print("yes")
-                self.images.removeAll()
-            }
-        })
-    }
+    //still under development
+    /*
+     func createVideoFromImages(){
+     Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
+     let settings = RenderSettings()
+     let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
+     imageAnimator.render() {
+     print("yes")
+     self.images.removeAll()
+     }
+     })
+     }
+     */
     
     func managePhotoOrientation() -> AVCaptureVideoOrientation {
         
@@ -601,19 +608,19 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             
             if rawPreferred{
                 /*
-                convert raw to jpeg
-                */
+                 convert raw to jpeg
+                 */
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
             else{
                 do {
                     /*
-                    try self.jpegPhotoData!.write(to: dngFileURL)
-                    let mydata = try Data.init(contentsOf: dngFileURL)
-                    let mynewUIImage = UIImage(data: mydata)
-                    let myciimage = CIImage(data: mydata)
-                    let mynewUIImage = UIImage(ciImage: myciimage!, scale: 1.0, orientation: UIImageOrientation.left)
-                    */
+                     try self.jpegPhotoData!.write(to: dngFileURL)
+                     let mydata = try Data.init(contentsOf: dngFileURL)
+                     let mynewUIImage = UIImage(data: mydata)
+                     let myciimage = CIImage(data: mydata)
+                     let mynewUIImage = UIImage(ciImage: myciimage!, scale: 1.0, orientation: UIImageOrientation.left)
+                     */
                     let mynewUIImage = UIImage(data: self.jpegPhotoData!)
                     self.images.append(mynewUIImage!)
                 }

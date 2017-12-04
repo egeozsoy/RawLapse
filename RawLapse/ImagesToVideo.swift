@@ -6,6 +6,7 @@
 //  Copyright © 2017 Ege. All rights reserved.
 //
 
+
 import AVFoundation
 import UIKit
 import Photos
@@ -17,7 +18,7 @@ struct RenderSettings {
     
     var width: CGFloat = 4032
     var height: CGFloat = 3024
-    var fps: Int32 = 24   // 2 frames per second
+    var fps: Int32 = 24
     var avCodecKey = AVVideoCodecType.h264
     var videoFilename = "Timelapse"
     var videoFilenameExt = "mp4"
@@ -265,3 +266,4 @@ class VideoWriter {
     }
     
 }
+ 
