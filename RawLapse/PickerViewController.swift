@@ -61,6 +61,16 @@ class PickerViewController: UIViewController , UIPickerViewDelegate , UIPickerVi
         
     }
     
+    func indexOfItem(currentTimerMod selected : String) -> Int?{
+        setupArrays()
+        return pickerViewList1.index(of: selected)
+    }
+    
+    func indexOfItem(currentCounterMod selected : String) -> Int?{
+        setupArrays()
+        return pickerViewList2.index(of: selected)
+    }
+    
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }

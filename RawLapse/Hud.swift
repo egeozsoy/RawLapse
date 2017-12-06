@@ -47,6 +47,11 @@ class Hud: UIView {
         pickerView1.layer.cornerRadius = 10
         pickerView1.layer.masksToBounds = true
         pickerView1.backgroundColor = UIColor.lightGray
+        let currentInterval =  UserDefaults.standard.integer(forKey: "secondInterval")
+        if let currentIndex = self.pickerController?.indexOfItem(currentTimerMod: String (currentInterval) ) {
+            pickerView1.selectRow(currentIndex, inComponent: 0, animated: true)
+        }
+        
         
         let pickerView2 = UIPickerView()
         pickerView2.tag = 2
@@ -57,6 +62,18 @@ class Hud: UIView {
         pickerView2.layer.masksToBounds = true
         pickerView2.backgroundColor = UIColor.lightGray
         pickerView2.tintColor = UIColor.black
+        let conti = UserDefaults.standard.bool(forKey: "continuous")
+        if conti {
+            if let currentIndex = self.pickerController?.indexOfItem(currentCounterMod: "BULB" ) {
+                pickerView2.selectRow(currentIndex, inComponent: 0, animated: true)
+            }
+        }
+        else {
+            let currentCounter =  UserDefaults.standard.integer(forKey: "amountOfPhotos")
+            if let currentIndex = self.pickerController?.indexOfItem(currentCounterMod: String (currentCounter) ) {
+                pickerView2.selectRow(currentIndex, inComponent: 0, animated: true)
+            }
+        }
         
         self.addSubview(pickerView1)
         self.addSubview(pickerView2)
