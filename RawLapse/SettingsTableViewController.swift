@@ -40,6 +40,8 @@ class SettingsTableViewController: UITableViewController {
             let delegate = UIApplication.shared.delegate as! AppDelegate
             delegate.cameraViewController.setRuleOfThirdsViewer()
             
+            
+            
         }
         
     }

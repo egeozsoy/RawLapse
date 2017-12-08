@@ -162,7 +162,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             self.captureSession.addOutput(self.photoOutput!)
             
             try? currentCamera.lockForConfiguration()
-            
             currentCamera.setExposureModeCustom(duration: currentCamera.activeFormat.maxExposureDuration, iso: currentCamera.activeFormat.minISO, completionHandler: nil)
             currentCamera.exposureMode = .continuousAutoExposure
             currentCamera.unlockForConfiguration()
@@ -174,6 +173,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         
     }
+    
     
     //    how to setup photoSettings
     func setupRawJpeg(rawSupported rawSupport: Bool){
@@ -624,7 +624,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                     let mynewUIImage = UIImage(data: self.jpegPhotoData!)
                     self.images.append(mynewUIImage!)
                 }
-                catch{}
+                catch{
+                    
+                }
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
             }
         }, completionHandler: nil)
@@ -822,8 +824,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         settingsTextView.heightAnchor.constraint(equalToConstant: 88).isActive = true
         settingsTextView.widthAnchor.constraint(equalToConstant: 100).isActive = true
         
-        photoCounterLabel.rightAnchor.constraint(equalTo: bottomBar.rightAnchor).isActive = true
-        photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor).isActive = true
+        photoCounterLabel.rightAnchor.constraint(equalTo: bottomBar.rightAnchor , constant: -16).isActive = true
+        photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor , constant: -16).isActive = true
         photoCounterLabel.widthAnchor.constraint(equalToConstant: 100).isActive = true
         photoCounterLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
     }

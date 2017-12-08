@@ -87,11 +87,11 @@ class PickerViewController: UIViewController , UIPickerViewDelegate , UIPickerVi
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         if pickerView.tag == 1{
-            print(pickerViewList1[row])
+//            print(pickerViewList1[row])
             secondInterval = Int(pickerViewList1[row])!
         }
         else{
-            print(pickerViewList2[row])
+//            print(pickerViewList2[row])
             if(pickerViewList2[row] == "BULB"){
                 continuous = true
             }else{
