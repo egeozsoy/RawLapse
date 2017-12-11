@@ -16,11 +16,11 @@ class ImagesToVideo: NSObject {
 
 struct RenderSettings {
     
-    var width: CGFloat = 4032
-    var height: CGFloat = 3024
+    var width: CGFloat = 3840
+    var height: CGFloat = 2160
     var fps: Int32 = 24
     var avCodecKey = AVVideoCodecType.h264
-    var videoFilename = "Timelapse"
+    var videoFilename = "Timelapse1"
     var videoFilenameExt = "mp4"
     
     var size: CGSize {
@@ -51,11 +51,14 @@ class ImageAnimator {
     
     class func saveToLibrary(videoURL: NSURL) {
         PHPhotoLibrary.requestAuthorization { status in
-            guard status == .authorized else { return }
             
+            guard status == .authorized else { return }
             PHPhotoLibrary.shared().performChanges({
-                
+                print("here")
+                print("Video URl \(videoURL)")
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: videoURL as URL)
+                
+                
                 
             }) { success, error in
                 if !success {
@@ -75,6 +78,7 @@ class ImageAnimator {
     }
     
     init(renderSettings: RenderSettings , imagesArray: [UIImage]) {
+        print(imagesArray)
         settings = renderSettings
         videoWriter = VideoWriter(renderSettings: settings)
         images = imagesArray
@@ -87,6 +91,7 @@ class ImageAnimator {
         
         videoWriter.start()
         videoWriter.render(appendPixelBuffers: appendPixelBuffers) {
+        
             ImageAnimator.saveToLibrary(videoURL: self.settings.outputURL)
         
             completion()
@@ -132,6 +137,96 @@ class ImageAnimator {
     
 }
 
+func createMatchingBackingDataWithImage(imageRef: CGImage?, orienation: UIImageOrientation) -> CGImage? {
+    var orientedImage: CGImage?
+    
+    if let imageRef = imageRef {
+        let originalWidth = imageRef.width
+        let originalHeight = imageRef.height
+        let bitsPerComponent = imageRef.bitsPerComponent
+        let bytesPerRow = imageRef.bytesPerRow
+        
+        let colorSpace = imageRef.colorSpace
+        let bitmapInfo = imageRef.bitmapInfo
+        
+        var degreesToRotate: Double
+        var swapWidthHeight: Bool
+        var mirrored: Bool
+        switch orienation {
+        case .up:
+            degreesToRotate = 0.0
+            swapWidthHeight = false
+            mirrored = false
+            break
+        case .upMirrored:
+            degreesToRotate = 0.0
+            swapWidthHeight = false
+            mirrored = true
+            break
+        case .right:
+            degreesToRotate = 90.0
+            swapWidthHeight = true
+            mirrored = false
+            break
+        case .rightMirrored:
+            degreesToRotate = 90.0
+            swapWidthHeight = true
+            mirrored = true
+            break
+        case .down:
+            degreesToRotate = 180.0
+            swapWidthHeight = false
+            mirrored = false
+            break
+        case .downMirrored:
+            degreesToRotate = 180.0
+            swapWidthHeight = false
+            mirrored = true
+            break
+        case .left:
+            degreesToRotate = -90.0
+            swapWidthHeight = true
+            mirrored = false
+            break
+        case .leftMirrored:
+            degreesToRotate = -90.0
+            swapWidthHeight = true
+            mirrored = true
+            break
+        }
+        let radians = degreesToRotate * Double.pi / 180
+        
+        var width: Int
+        var height: Int
+        if swapWidthHeight {
+            width = originalHeight
+            height = originalWidth
+        } else {
+            width = originalWidth
+            height = originalHeight
+        }
+        
+        if let contextRef = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace!, bitmapInfo: bitmapInfo.rawValue) {
+            
+            contextRef.translateBy(x: CGFloat(width) / 2.0, y: CGFloat(height) / 2.0)
+            if mirrored {
+                contextRef.scaleBy(x: -1.0, y: 1.0)
+            }
+            contextRef.rotate(by: CGFloat(radians))
+            if swapWidthHeight {
+                contextRef.translateBy(x: -CGFloat(height) / 2.0, y: -CGFloat(width) / 2.0)
+            } else {
+                contextRef.translateBy(x: -CGFloat(width) / 2.0, y: -CGFloat(height) / 2.0)
+            }
+            contextRef.draw(imageRef, in: CGRect(x: 0, y: 0, width: originalWidth, height: originalHeight))
+            
+            orientedImage = contextRef.makeImage()
+        }
+    }
+    
+    return orientedImage
+}
+
 class VideoWriter {
     
     let renderSettings: RenderSettings
@@ -161,20 +256,28 @@ class VideoWriter {
         let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
         let context = CGContext(data: data, width: Int(size.width), height: Int(size.height),
                                 bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer), space: rgbColorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue)
-        
+//        context.
         context!.clear(CGRect(x: 0, y: 0, width: size.width, height: size.height))
         
         let horizontalRatio = size.width / image.size.width
         let verticalRatio = size.height / image.size.height
-        //aspectRatio = max(horizontalRatio, verticalRatio) // ScaleAspectFill
-        let aspectRatio = min(horizontalRatio, verticalRatio) // ScaleAspectFit
+        let aspectRatio = max(horizontalRatio, verticalRatio) // ScaleAspectFill
+//        let aspectRatio = min(horizontalRatio, verticalRatio) // ScaleAspectFit
         
         let newSize = CGSize(width: image.size.width * aspectRatio, height: image.size.height * aspectRatio)
         
         let x = newSize.width < size.width ? (size.width - newSize.width) / 2 : 0
         let y = newSize.height < size.height ? (size.height - newSize.height) / 2 : 0
+        //flip image if false
+        var newImage: CGImage?
+        if image.imageOrientation.rawValue == 1 {
+            newImage = createMatchingBackingDataWithImage(imageRef: image.cgImage, orienation: .down)
+        }
+        else {
+            newImage = image.cgImage
+        }
         
-        context?.draw(image.cgImage!, in: CGRect(x: x, y: y, width: newSize.width, height: newSize.height))
+        context?.draw(newImage!, in: CGRect(x: x, y: y, width: newSize.width, height: newSize.height))
         CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue: 0))
         
         return pixelBuffer

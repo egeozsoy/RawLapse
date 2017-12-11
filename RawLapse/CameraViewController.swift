@@ -50,7 +50,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var continuous: Bool?
     
     var buttonsSet = false
-    let createVideo = false
+    let createVideo = true
     
     var startBrightness : CGFloat?
     
@@ -486,26 +486,26 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         shutterButton.tintColor = UIColor.white
         toggleProximitySensor()
         self.photoCounter = 0
-        /*
+        
         if createVideo {
             createVideoFromImages()
         }
-        */
+        
         return ;
     }
     //still under development
-    /*
+    
      func createVideoFromImages(){
      Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
-     let settings = RenderSettings()
-     let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
-     imageAnimator.render() {
-     print("yes")
+        let settings = RenderSettings()
+        let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
+        imageAnimator.render() {
+                print("yes")
      self.images.removeAll()
      }
      })
      }
-     */
+    
     
     func managePhotoOrientation() -> AVCaptureVideoOrientation {
         
@@ -562,11 +562,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             appendString = "\(photoCounter)"
         }
         if let newUuid = uuid{
-            let saveString = "IMG-" + newUuid + appendString + ".dng"
+            let saveString = "IMG-" + newUuid + appendString + ".jpg"
             return cachesDirectory().appendingPathComponent(saveString)
         }
         else {
-            let saveString = "IMG-" + appendString + ".dng"
+            let saveString = "IMG-" + appendString + ".jpg"
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
     
@@ -613,20 +613,30 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
             else{
-                do {
-                    /*
-                     try self.jpegPhotoData!.write(to: dngFileURL)
-                     let mydata = try Data.init(contentsOf: dngFileURL)
-                     let mynewUIImage = UIImage(data: mydata)
-                     let myciimage = CIImage(data: mydata)
-                     let mynewUIImage = UIImage(ciImage: myciimage!, scale: 1.0, orientation: UIImageOrientation.left)
-                     */
-                    let mynewUIImage = UIImage(data: self.jpegPhotoData!)
-                    self.images.append(mynewUIImage!)
+                
+                DispatchQueue.main.async {
+                        do {
+                            /*
+                        try self.jpegPhotoData!.write(to: dngFileURL)
+                        let mydata = try Data.init(contentsOf: dngFileURL)
+                        let mynewUIImage = UIImage(data: mydata)
+                            */
+                        let mynewUIImage = UIImage(data: self.jpegPhotoData!)
+                        self.images.append(mynewUIImage!)
+                            /*
+                            let myciimage = CIImage(data: mydata)
+                            let mynewUIImage = UIImage(ciImage: myciimage!, scale: 1.0, orientation: UIImageOrientation.left)
+                            */
+                            
+                            
+                    }
+                        catch  {
+                            print("errors")
+                            
+                    }
+//
                 }
-                catch{
-                    
-                }
+                
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
             }
         }, completionHandler: nil)
