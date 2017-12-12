@@ -615,24 +615,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             else{
                 
                 DispatchQueue.main.async {
-                        /*
-                        do {
-                            
-                            try self.jpegPhotoData!.write(to: dngFileURL)
-                            let mydata = try Data.init(contentsOf: dngFileURL)
-                            let mynewUIImage = UIImage(data: mydata)
-                            let myciimage = CIImage(data: mydata)
-                            let mynewUIImage = UIImage(ciImage: myciimage!, scale: 1.0, orientation: UIImageOrientation.left)
-                       }
-                            */
+                    
                             let mynewUIImage = UIImage(data: self.jpegPhotoData!)
                             self.images.append(mynewUIImage!)
-                    
-                        /*
-                        catch  {
-                            print("errors")
-                    }
-                        */
                 }
                 
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
