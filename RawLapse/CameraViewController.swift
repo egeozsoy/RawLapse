@@ -497,7 +497,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
      func createVideoFromImages(){
      Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
-        let settings = RenderSettings()
+        let settings = RenderSettings(orientation: self.images.first!.imageOrientation, quality: "4K")
         let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
         imageAnimator.render() {
                 print("yes")
@@ -562,11 +562,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             appendString = "\(photoCounter)"
         }
         if let newUuid = uuid{
-            let saveString = "IMG-" + newUuid + appendString + ".jpg"
+            let saveString = "IMG-" + newUuid + appendString + ".dng"
             return cachesDirectory().appendingPathComponent(saveString)
         }
         else {
-            let saveString = "IMG-" + appendString + ".jpg"
+            let saveString = "IMG-" + appendString + ".dng"
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
     
@@ -615,26 +615,24 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             else{
                 
                 DispatchQueue.main.async {
+                        /*
                         do {
-                            /*
-                        try self.jpegPhotoData!.write(to: dngFileURL)
-                        let mydata = try Data.init(contentsOf: dngFileURL)
-                        let mynewUIImage = UIImage(data: mydata)
-                            */
-                        let mynewUIImage = UIImage(data: self.jpegPhotoData!)
-                        self.images.append(mynewUIImage!)
-                            /*
+                            
+                            try self.jpegPhotoData!.write(to: dngFileURL)
+                            let mydata = try Data.init(contentsOf: dngFileURL)
+                            let mynewUIImage = UIImage(data: mydata)
                             let myciimage = CIImage(data: mydata)
                             let mynewUIImage = UIImage(ciImage: myciimage!, scale: 1.0, orientation: UIImageOrientation.left)
+                       }
                             */
-                            
-                            
-                    }
+                            let mynewUIImage = UIImage(data: self.jpegPhotoData!)
+                            self.images.append(mynewUIImage!)
+                    
+                        /*
                         catch  {
                             print("errors")
-                            
                     }
-//
+                        */
                 }
                 
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)

@@ -15,7 +15,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "52"
             endingLineNumber = "52"
-            landmarkName = "saveToLibrary(videoURL:)"
+            landmarkName = "init(orientation:quality:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -31,8 +31,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "71"
             endingLineNumber = "71"
-            landmarkName = "removeFileAtURL(fileURL:)"
-            landmarkType = "7">
+            landmarkName = "outputURL"
+            landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -47,8 +47,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "80"
             endingLineNumber = "80"
-            landmarkName = "init(renderSettings:imagesArray:)"
-            landmarkType = "7">
+            landmarkName = "ImageAnimator"
+            landmarkType = "3">
             <Locations>
                <Location
                   shouldBeEnabled = "No"
@@ -95,7 +95,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "87"
             endingLineNumber = "87"
-            landmarkName = "render(completion:)"
+            landmarkName = "saveToLibrary(videoURL:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -111,7 +111,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "114"
             endingLineNumber = "114"
-            landmarkName = "appendPixelBuffers(writer:)"
+            landmarkName = "init(renderSettings:imagesArray:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -127,8 +127,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "230"
             endingLineNumber = "230"
-            landmarkName = "VideoWriter"
-            landmarkType = "3">
+            landmarkName = "createMatchingBackingDataWithImage(imageRef:orienation:)"
+            landmarkType = "9">
             <Locations>
                <Location
                   shouldBeEnabled = "No"
@@ -175,8 +175,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "242"
             endingLineNumber = "242"
-            landmarkName = "pixelBufferFromImage(image:pixelBufferPool:size:)"
-            landmarkType = "7">
+            landmarkName = "createMatchingBackingDataWithImage(imageRef:orienation:)"
+            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -191,7 +191,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "286"
             endingLineNumber = "286"
-            landmarkName = "init(renderSettings:)"
+            landmarkName = "pixelBufferFromImage(image:pixelBufferPool:size:)"
             landmarkType = "7">
             <Locations>
                <Location
@@ -239,7 +239,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "290"
             endingLineNumber = "290"
-            landmarkName = "start()"
+            landmarkName = "pixelBufferFromImage(image:pixelBufferPool:size:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -255,8 +255,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "308"
             endingLineNumber = "308"
-            landmarkName = "createAssetWriter(outputURL:)"
-            landmarkType = "9">
+            landmarkName = "pixelBufferFromImage(image:pixelBufferPool:size:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -271,8 +271,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "342"
             endingLineNumber = "342"
-            landmarkName = "render(appendPixelBuffers:completion:)"
-            landmarkType = "7">
+            landmarkName = "createAssetWriter(outputURL:)"
+            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -287,7 +287,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "363"
             endingLineNumber = "363"
-            landmarkName = "addImage(image:withPresentationTime:)"
+            landmarkName = "start()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

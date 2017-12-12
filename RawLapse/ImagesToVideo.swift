@@ -23,6 +23,39 @@ struct RenderSettings {
     var videoFilename = "Timelapse1"
     var videoFilenameExt = "mp4"
     
+    init(orientation imageOrientation : UIImageOrientation , quality res : String) {
+        switch res {
+        case "4K":
+            if imageOrientation.rawValue == 0 || imageOrientation.rawValue == 1 {
+                width = 3840
+                height = 2160
+            }
+            else {
+                width = 2160
+                height = 3840
+            }
+        case "1080p":
+            if imageOrientation.rawValue == 0 || imageOrientation.rawValue == 1 {
+                width = 1920
+                height = 1080
+            }
+            else {
+                width = 1080
+                height = 1920
+            }
+            
+        default:
+            if imageOrientation.rawValue == 0 || imageOrientation.rawValue == 1 {
+                width = 1920
+                height = 1080
+            }
+            else {
+                width = 1080
+                height = 1920
+            }
+        }
+    }
+    
     var size: CGSize {
         return CGSize(width: width, height: height)
     }
