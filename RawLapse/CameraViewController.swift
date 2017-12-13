@@ -69,6 +69,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         return imageviewer
     }()
     
+    var forceLockScreenDimming = false
+    
     
     
     let disabledColor = UIColor.init(white: 0.5, alpha: 0.5)
@@ -432,7 +434,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func dimScreen(){
         if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
-            if settingsDic["Screen Dimming"] == true{
+            if settingsDic["Screen Dimming"] == true && forceLockScreenDimming == false {
                 UIScreen.main.brightness = 0.0
             }
         }
