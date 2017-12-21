@@ -40,7 +40,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         cameraViewController.stopUpdateTimer()
         cameraViewController.fixBrightness()
         cameraViewController.forceLockScreenDimming = true
-        
     }
     
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -61,7 +60,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         cameraViewController.fixBrightness()
         cameraViewController.forceLockScreenDimming = true
     }
-    
-    
 }
 

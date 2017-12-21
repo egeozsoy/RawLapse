@@ -71,10 +71,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     var forceLockScreenDimming = false
     
-    
-    
     let disabledColor = UIColor.init(white: 0.5, alpha: 0.5)
-    
     
     let shutterButton: UIButton = {
         let button = UIButton()
@@ -170,12 +167,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             self.updateLabels()
             
         }catch let error {
-            
             print(error)
         }
-        
     }
-    
     
     //    how to setup photoSettings
     func setupRawJpeg(rawSupported rawSupport: Bool){
@@ -188,7 +182,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         else{
             photoSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey : AVVideoCodecType.jpeg])
-            
         }
         guard let pSettings = photoSettings else{
             return
@@ -214,7 +207,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         let y = (height - wantedHeight)/2
         cameraPreviewLayerFrame = CGRect(x: x, y: y, width: width , height: wantedHeight)
         setRuleOfThirdsViewer()
-        
         
     }
     
@@ -361,9 +353,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 self.startRunningCaptureSession()
                 self.setupInputOutput()
                 self.toggleRawButton()
-                
             }
         }
+        
         checkPhotoLibraryAuthorization {(error) in}
         //        allows buttons to change orientation
         NotificationCenter.default.addObserver(self, selector: #selector(newOrientation), name: Notification.Name.UIDeviceOrientationDidChange, object: nil)
@@ -471,7 +463,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                         }
                         else{
                             self.stopTimeLapse();
-                            
                         }
                     }
                 }
@@ -492,24 +483,22 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         if createVideo {
             createVideoFromImages()
         }
-        
         return ;
     }
     //still under development
     
-     func createVideoFromImages(){
-     Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
-        guard let imageSize = self.images.first?.size else { self.images.removeAll();
-                                                                return}
-        let settings = RenderSettings(orientation: self.images.first!.imageOrientation, quality: "4K" , width: Int(imageSize.width), height: Int(imageSize.height))
-        let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
-        imageAnimator.render() {
+    func createVideoFromImages(){
+        Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
+            guard let imageSize = self.images.first?.size else { self.images.removeAll();
+                return}
+            let settings = RenderSettings(orientation: self.images.first!.imageOrientation, quality: "4K" , width: Int(imageSize.width), height: Int(imageSize.height))
+            let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
+            imageAnimator.render() {
                 print("yes")
-     self.images.removeAll()
-     }
-     })
-     }
-    
+                self.images.removeAll()
+            }
+        })
+    }
     
     func managePhotoOrientation() -> AVCaptureVideoOrientation {
         
@@ -604,7 +593,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         shadowHighlight.setValue(1, forKey: "inputHighlightAmount")
         shadowHighlight.setValue(0.3 , forKey: "inputShadowAmount")
         rawImage.setValue(shadowHighlight, forKey: kCIInputLinearSpaceFilter)
-
+        
         return rawImage.outputImage
     }
     
@@ -624,11 +613,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             if let rawPhoto = rawPhotoData {
                 try rawPhoto.write(to: dngFileURL, options: [])
             }
-            
         }
-        catch{
-            return
-        }
+        catch{return}
+        
         guard let rawPreferred = rawButton?.isSelected else{ return}
         
         PHPhotoLibrary.shared().performChanges({
@@ -643,10 +630,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                         let myCGImage = self.createCGIImage(from: rawAsCIImage)
                         let mynewUIImage = UIImage(cgImage: myCGImage!)
                         self.images.append(mynewUIImage)
-                }
-                DispatchQueue.main.async {
-                    
-                }
+                    }
+                    DispatchQueue.main.async {
+                        
+                    }
                 }
                 
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
@@ -655,8 +642,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 
                 DispatchQueue.main.async {
                     
-                            let mynewUIImage = UIImage(data: self.jpegPhotoData!)
-                            self.images.append(mynewUIImage!)
+                    let mynewUIImage = UIImage(data: self.jpegPhotoData!)
+                    self.images.append(mynewUIImage!)
                 }
                 
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
@@ -757,8 +744,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         navController.navigationBar.barTintColor = UIColor.black
         navController.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white]
         present(navController, animated: true, completion: nil)
-        
-        //        showAlert(withTitle: "Privacy Policy", withMessage: " RawLapse does not upload or permanently store any photos taken within the app. We don't collect any user data, and the app does not use internet at all. All the required permissions are needed to take and save the photos locally.")
     }
     
     func addViews(){

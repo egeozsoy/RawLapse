@@ -35,7 +35,6 @@ struct RenderSettings {
             else {
                 self.width = 2160
                 self.height = 3840
-                
             }
             
         case "1080p":
@@ -83,7 +82,6 @@ class ImageAnimator {
     let settings: RenderSettings
     let videoWriter: VideoWriter
     var images: [UIImage]!
-    
     var frameNum = 0
     
     class func saveToLibrary(videoURL: NSURL) {
@@ -95,11 +93,9 @@ class ImageAnimator {
                 print("Video URl \(videoURL)")
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: videoURL as URL)
                 
-                
-                
             }) { success, error in
                 if !success {
-                    print("Could not save video to photo library:", error)
+//                    print("Could not save video to photo library:", error)
                 }
             }
         }
@@ -118,47 +114,29 @@ class ImageAnimator {
         settings = renderSettings
         videoWriter = VideoWriter(renderSettings: settings)
         images = imagesArray
-        
     }
     
     func render(completion: @escaping ()->Void) {
-        
         // The VideoWriter will fail if a file exists at the URL, so clear it out first.
         ImageAnimator.removeFileAtURL(fileURL: settings.outputURL)
         
         videoWriter.start()
         videoWriter.render(appendPixelBuffers: appendPixelBuffers) {
-        
+            
             ImageAnimator.saveToLibrary(videoURL: self.settings.outputURL)
-        
             completion()
         }
-        
     }
-    
-    // Replace this logic with your own.
-//    func loadImages() -> [UIImage] {
-    
-//        var images = [UIImage]()
-//        for index in 1...10 {
-//            let filename = "\(index).jpg"
-//            images.append(UIImage(named: filename)!)
-//        }
-//        return images
-//    }
     
     // This is the callback function for VideoWriter.render()
     func appendPixelBuffers(writer: VideoWriter) -> Bool {
-        
         let frameDuration = CMTimeMake(Int64(ImageAnimator.kTimescale / settings.fps), ImageAnimator.kTimescale)
         
         while !images.isEmpty {
-            
             if writer.isReadyForData == false {
                 // Inform writer we have more buffers to write.
                 return false
             }
-            
             let image = images.removeFirst()
             let presentationTime = CMTimeMultiply(frameDuration, Int32(frameNum))
             let success = videoWriter.addImage(image: image, withPresentationTime: presentationTime)
@@ -167,11 +145,9 @@ class ImageAnimator {
             }
             frameNum += 1
         }
-        
         // Inform writer all buffers have been written.
         return true
     }
-    
 }
 
 func createMatchingBackingDataWithImage(imageRef: CGImage?, orienation: UIImageOrientation) -> CGImage? {
@@ -260,7 +236,6 @@ func createMatchingBackingDataWithImage(imageRef: CGImage?, orienation: UIImageO
             orientedImage = contextRef.makeImage()
         }
     }
-    
     return orientedImage
 }
 
@@ -284,7 +259,6 @@ class VideoWriter {
         if status != kCVReturnSuccess {
             fatalError("CVPixelBufferPoolCreatePixelBuffer() failed")
         }
-        
         let pixelBuffer = pixelBufferOut!
         
         CVPixelBufferLockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue: 0))
@@ -293,13 +267,13 @@ class VideoWriter {
         let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
         let context = CGContext(data: data, width: Int(size.width), height: Int(size.height),
                                 bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer), space: rgbColorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue)
-//        context.
+        //        context.
         context!.clear(CGRect(x: 0, y: 0, width: size.width, height: size.height))
         
         let horizontalRatio = size.width / image.size.width
         let verticalRatio = size.height / image.size.height
         let aspectRatio = max(horizontalRatio, verticalRatio) // ScaleAspectFill
-//        let aspectRatio = min(horizontalRatio, verticalRatio) // ScaleAspectFit
+        //        let aspectRatio = min(horizontalRatio, verticalRatio) // ScaleAspectFit
         
         let newSize = CGSize(width: image.size.width * aspectRatio, height: image.size.height * aspectRatio)
         
@@ -350,7 +324,6 @@ class VideoWriter {
             guard assetWriter.canApply(outputSettings: avOutputSettings, forMediaType: AVMediaType.video) else {
                 fatalError("canApplyOutputSettings() failed")
             }
-            
             return assetWriter
         }
         
@@ -404,6 +377,5 @@ class VideoWriter {
         let pixelBuffer = VideoWriter.pixelBufferFromImage(image: image, pixelBufferPool: pixelBufferAdaptor.pixelBufferPool!, size: renderSettings.size)
         return pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: presentationTime)
     }
-    
 }
- 
+

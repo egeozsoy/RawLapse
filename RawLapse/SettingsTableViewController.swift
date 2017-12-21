@@ -33,17 +33,12 @@ class SettingsTableViewController: UITableViewController {
         return true
     }
     
-    
     @objc func dismissing(){
         UserDefaults.standard.set(settingsDic, forKey: "settinsgDic")
         navigationController?.dismiss(animated: true) {
             let delegate = UIApplication.shared.delegate as! AppDelegate
             delegate.cameraViewController.setRuleOfThirdsViewer()
-            
-            
-            
         }
-        
     }
     
     // MARK: - Table view data source
@@ -83,7 +78,6 @@ class SettingsTableViewController: UITableViewController {
         }else{
             settingActive.isOn = false
         }
-        
         cell.selectionStyle = .none
         return cell
     }
