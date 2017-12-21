@@ -23,17 +23,21 @@ struct RenderSettings {
     var videoFilename = "Timelapse1"
     var videoFilenameExt = "mp4"
     
-    init(orientation imageOrientation : UIImageOrientation , quality res : String) {
+    init(orientation imageOrientation : UIImageOrientation , quality res : String , width imageWidth: Int , height imageHeight: Int) {
         switch res {
+            
         case "4K":
-            if imageOrientation.rawValue == 0 || imageOrientation.rawValue == 1 {
-                width = 3840
-                height = 2160
+            
+            if imageWidth > imageHeight {
+                self.width = 3840
+                self.height = 2160
             }
             else {
-                width = 2160
-                height = 3840
+                self.width = 2160
+                self.height = 3840
+                
             }
+            
         case "1080p":
             if imageOrientation.rawValue == 0 || imageOrientation.rawValue == 1 {
                 width = 1920
@@ -111,10 +115,10 @@ class ImageAnimator {
     }
     
     init(renderSettings: RenderSettings , imagesArray: [UIImage]) {
-        print(imagesArray)
         settings = renderSettings
         videoWriter = VideoWriter(renderSettings: settings)
         images = imagesArray
+        
     }
     
     func render(completion: @escaping ()->Void) {

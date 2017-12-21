@@ -499,7 +499,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
      func createVideoFromImages(){
      Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
-        let settings = RenderSettings(orientation: self.images.first!.imageOrientation, quality: "4K")
+        guard let imageSize = self.images.first?.size else { self.images.removeAll();
+                                                                return}
+        let settings = RenderSettings(orientation: self.images.first!.imageOrientation, quality: "4K" , width: Int(imageSize.width), height: Int(imageSize.height))
         let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
         imageAnimator.render() {
                 print("yes")
@@ -588,6 +590,32 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         saveRawWithEmbeddedThumbnail()
     }
     
+    func getAdjustedRaw(rawData : Data?) -> CIImage?{
+        
+        guard let shadowHighlight = CIFilter(name: "CIHighlightShadowAdjust") else{
+            print("shadowHighlightNotFound")
+            return nil}
+        
+        guard let rawImage = CIFilter(imageData: rawData, options: nil) else {return nil}
+        
+        rawImage.setValue(-0.3, forKey: kCIInputEVKey)
+        rawImage.setValue(2, forKey: kCIInputBoostShadowAmountKey)
+        shadowHighlight.setValue(rawImage.outputImage, forKey: kCIInputImageKey)
+        shadowHighlight.setValue(1, forKey: "inputHighlightAmount")
+        shadowHighlight.setValue(0.3 , forKey: "inputShadowAmount")
+        rawImage.setValue(shadowHighlight, forKey: kCIInputLinearSpaceFilter)
+
+        return rawImage.outputImage
+    }
+    
+    lazy var contextForSaving:CIContext = CIContext(options:
+        [kCIContextCacheIntermediates : false ,
+         kCIContextPriorityRequestLow : true ])
+    
+    func createCGIImage(from rawImage: CIImage ) -> CGImage? {
+        return contextForSaving.createCGImage(rawImage, from: rawImage.extent, format: kCIFormatRGBAh, colorSpace: CGColorSpace(name:CGColorSpace.extendedLinearSRGB), deferred: true)
+    }
+    
     func saveRawWithEmbeddedThumbnail(){
         self.checkPhotoLibraryAuthorization { (error) in}
         
@@ -609,9 +637,18 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             creationOptions.shouldMoveFile = true
             
             if rawPreferred{
-                /*
-                 convert raw to jpeg
-                 */
+                /*convert raw to jpeg*/
+                DispatchQueue.global(qos: .background).async {
+                    if let rawAsCIImage = self.getAdjustedRaw(rawData: self.rawPhotoData){
+                        let myCGImage = self.createCGIImage(from: rawAsCIImage)
+                        let mynewUIImage = UIImage(cgImage: myCGImage!)
+                        self.images.append(mynewUIImage)
+                }
+                DispatchQueue.main.async {
+                    
+                }
+                }
+                
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
             else{
