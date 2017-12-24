@@ -488,6 +488,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     //still under development
     
     func createVideoFromImages(){
+        shutterButton.tintColor = self.disabledColor
         Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
             guard let imageSize = self.images.first?.size else { self.images.removeAll();
                 return}
@@ -495,6 +496,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
             imageAnimator.render() {
                 print("yes")
+                self.shutterButton.tintColor = UIColor.white
                 self.images.removeAll()
             }
         })
@@ -563,6 +565,36 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
     
+    
+    func jpgURL() -> URL{
+        if uuid == nil{
+            uuid = UUID().uuidString
+        }
+        var appendString = ""
+        if(photoCounter < 10){
+            appendString = "0000\(photoCounter)"
+        }
+        else if(photoCounter < 100){
+            appendString = "000\(photoCounter)"
+        }
+        else if(photoCounter < 1000){
+            appendString = "00\(photoCounter)"
+        }else if(photoCounter < 10000){
+            appendString = "0\(photoCounter)"
+        }else{
+            appendString = "\(photoCounter)"
+        }
+        if let newUuid = uuid{
+            let saveString = "IMG-" + newUuid + appendString + ".jpg"
+            return cachesDirectory().appendingPathComponent(saveString)
+        }
+        else {
+            let saveString = "IMG-" + appendString + ".jpg"
+            return cachesDirectory().appendingPathComponent(saveString)        }
+        
+        
+    }
+    
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if photo.isRawPhoto{
             self.rawPhotoData = photo.fileDataRepresentation()
@@ -624,26 +656,29 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             creationOptions.shouldMoveFile = true
             
             if rawPreferred{
-                /*convert raw to jpeg*/
+                /*convert raw to jpeg*/  
                 DispatchQueue.global(qos: .background).async {
                     if let rawAsCIImage = self.getAdjustedRaw(rawData: self.rawPhotoData){
+                        print(rawAsCIImage)
                         let myCGImage = self.createCGIImage(from: rawAsCIImage)
                         let mynewUIImage = UIImage(cgImage: myCGImage!)
+                        print(mynewUIImage.imageOrientation.rawValue)
                         self.images.append(mynewUIImage)
-                    }
-                    DispatchQueue.main.async {
-                        
                     }
                 }
                 
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
             else{
-                
-                DispatchQueue.main.async {
-                    
-                    let mynewUIImage = UIImage(data: self.jpegPhotoData!)
-                    self.images.append(mynewUIImage!)
+                DispatchQueue.global(qos: .background).async {
+                    let testUI = UIImage(data: self.jpegPhotoData!)
+                    if let jpegAsCIImage = CIImage(data: self.jpegPhotoData!){
+                        let myCGImage = self.createCGIImage(from: jpegAsCIImage)
+                        let mynewUIImage = UIImage.init(cgImage: myCGImage!, scale: 1.0, orientation: testUI!.imageOrientation)
+                        print(mynewUIImage)
+                        print(mynewUIImage.imageOrientation.rawValue)
+                        self.images.append(mynewUIImage)
+                    }
                 }
                 
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)

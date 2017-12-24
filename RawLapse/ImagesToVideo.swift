@@ -19,7 +19,7 @@ struct RenderSettings {
     var width: CGFloat = 3840
     var height: CGFloat = 2160
     var fps: Int32 = 24
-    var avCodecKey = AVVideoCodecType.h264
+    var avCodecKey = AVVideoCodecType.hevc
     var videoFilename = "Timelapse1"
     var videoFilenameExt = "mp4"
     
@@ -27,15 +27,14 @@ struct RenderSettings {
         switch res {
             
         case "4K":
-            
-            if imageWidth > imageHeight {
-                self.width = 3840
-                self.height = 2160
-            }
-            else {
-                self.width = 2160
-                self.height = 3840
-            }
+                if imageWidth > imageHeight {
+                    self.width = 3840
+                    self.height = 2160
+                }
+                else {
+                    self.width = 2160
+                    self.height = 3840
+                }
             
         case "1080p":
             if imageOrientation.rawValue == 0 || imageOrientation.rawValue == 1 {
@@ -138,6 +137,7 @@ class ImageAnimator {
                 return false
             }
             let image = images.removeFirst()
+            print(image.imageOrientation.rawValue)
             let presentationTime = CMTimeMultiply(frameDuration, Int32(frameNum))
             let success = videoWriter.addImage(image: image, withPresentationTime: presentationTime)
             if success == false {
@@ -178,12 +178,14 @@ func createMatchingBackingDataWithImage(imageRef: CGImage?, orienation: UIImageO
             break
         case .right:
             degreesToRotate = 90.0
-            swapWidthHeight = true
+//            swapWidthHeight = true
+            swapWidthHeight = false
             mirrored = false
             break
         case .rightMirrored:
             degreesToRotate = 90.0
-            swapWidthHeight = true
+//            swapWidthHeight = true
+            swapWidthHeight = false
             mirrored = true
             break
         case .down:
@@ -199,11 +201,13 @@ func createMatchingBackingDataWithImage(imageRef: CGImage?, orienation: UIImageO
         case .left:
             degreesToRotate = -90.0
             swapWidthHeight = true
+//            swapWidthHeight = false
             mirrored = false
             break
         case .leftMirrored:
             degreesToRotate = -90.0
-            swapWidthHeight = true
+//            swapWidthHeight = true
+            swapWidthHeight = false
             mirrored = true
             break
         }
@@ -253,6 +257,23 @@ class VideoWriter {
     
     class func pixelBufferFromImage(image: UIImage, pixelBufferPool: CVPixelBufferPool, size: CGSize) -> CVPixelBuffer {
         
+        //flip image if false
+        var newImage: CGImage?
+        
+        if  image.imageOrientation.rawValue == 1 {
+            print("Upside Down Fix")
+            newImage = createMatchingBackingDataWithImage(imageRef: image.cgImage, orienation: .down)
+        }
+        else if  image.imageOrientation.rawValue == 3 {
+            print("Portrait Fix")
+            newImage = createMatchingBackingDataWithImage(imageRef: image.cgImage, orienation: .left)
+        }
+        else {
+            print("No Fix")
+            newImage = image.cgImage
+        }
+        
+        
         var pixelBufferOut: CVPixelBuffer?
         
         let status = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pixelBufferPool, &pixelBufferOut)
@@ -279,14 +300,7 @@ class VideoWriter {
         
         let x = newSize.width < size.width ? (size.width - newSize.width) / 2 : 0
         let y = newSize.height < size.height ? (size.height - newSize.height) / 2 : 0
-        //flip image if false
-        var newImage: CGImage?
-        if image.imageOrientation.rawValue == 1 {
-            newImage = createMatchingBackingDataWithImage(imageRef: image.cgImage, orienation: .down)
-        }
-        else {
-            newImage = image.cgImage
-        }
+        
         
         context?.draw(newImage!, in: CGRect(x: x, y: y, width: newSize.width, height: newSize.height))
         CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue: 0))
@@ -300,11 +314,16 @@ class VideoWriter {
     
     func start() {
         
+      
+        
         let avOutputSettings: [String: AnyObject] = [
             AVVideoCodecKey: renderSettings.avCodecKey as AnyObject,
             AVVideoWidthKey: NSNumber(value: Float(renderSettings.width)),
             AVVideoHeightKey: NSNumber(value: Float(renderSettings.height))
-        ]
+            ]
+            
+            
+       
         
         func createPixelBufferAdaptor() {
             let sourcePixelBufferAttributesDictionary = [
