@@ -80,7 +80,7 @@ class ImageAnimator {
     
     let settings: RenderSettings
     let videoWriter: VideoWriter
-    var images: [UIImage]!
+    var images: [URL]!
     var frameNum = 0
     
     class func saveToLibrary(videoURL: NSURL) {
@@ -109,7 +109,7 @@ class ImageAnimator {
         }
     }
     
-    init(renderSettings: RenderSettings , imagesArray: [UIImage]) {
+    init(renderSettings: RenderSettings , imagesArray: [URL]) {
         settings = renderSettings
         videoWriter = VideoWriter(renderSettings: settings)
         images = imagesArray
@@ -136,14 +136,23 @@ class ImageAnimator {
                 // Inform writer we have more buffers to write.
                 return false
             }
-            let image = images.removeFirst()
-            print(image.imageOrientation.rawValue)
-            let presentationTime = CMTimeMultiply(frameDuration, Int32(frameNum))
-            let success = videoWriter.addImage(image: image, withPresentationTime: presentationTime)
-            if success == false {
-                fatalError("addImage() failed")
+            do {
+                let imageDataUrl = images.removeFirst()
+                let imageData = try Data(contentsOf: imageDataUrl)
+                let image = UIImage(data: imageData)!
+                print(image.imageOrientation.rawValue)
+                let presentationTime = CMTimeMultiply(frameDuration, Int32(frameNum))
+                let success = videoWriter.addImage(image: image, withPresentationTime: presentationTime)
+                if success == false {
+                    fatalError("addImage() failed")
+                }
+                frameNum += 1
+                
             }
-            frameNum += 1
+            catch{
+                
+            }
+            
         }
         // Inform writer all buffers have been written.
         return true
@@ -256,6 +265,7 @@ class VideoWriter {
     }
     
     class func pixelBufferFromImage(image: UIImage, pixelBufferPool: CVPixelBufferPool, size: CGSize) -> CVPixelBuffer {
+//        jpeg portrait mode size differences with CGContext
         
         //flip image if false
         var newImage: CGImage?

@@ -49,12 +49,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var amountOfPhotos: Int?
     var continuous: Bool?
     
+    var processedPhotoCounter = 0
+    
     var buttonsSet = false
     let createVideo = true
     
     var startBrightness : CGFloat?
     
-    var images = [UIImage]()
+    var images = [URL]()
     
     var uuid: String?
     var labelUpdateTimer: Timer?
@@ -476,13 +478,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         timelapseTimer?.invalidate();
         self.fixBrightness()
         activeTimelapse = false;
-        shutterButton.tintColor = UIColor.white
+        shutterButton.tintColor = UIColor.blue
         toggleProximitySensor()
-        self.photoCounter = 0
+//        self.photoCounter = 0
         
+        /*
         if createVideo {
             createVideoFromImages()
         }
+ 
+ */
         return ;
     }
     //still under development
@@ -490,15 +495,26 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     func createVideoFromImages(){
         shutterButton.tintColor = self.disabledColor
         Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
-            guard let imageSize = self.images.first?.size else { self.images.removeAll();
-                return}
-            let settings = RenderSettings(orientation: self.images.first!.imageOrientation, quality: "4K" , width: Int(imageSize.width), height: Int(imageSize.height))
-            let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
-            imageAnimator.render() {
-                print("yes")
-                self.shutterButton.tintColor = UIColor.white
-                self.images.removeAll()
+            do {
+                let firstImageData = try Data(contentsOf: self.images.first!)
+                let firstImage = UIImage(data: firstImageData)
+                guard let imageSize = firstImage?.size  else { self.images.removeAll();
+                    return}
+                let settings = RenderSettings(orientation: firstImage!.imageOrientation, quality: "4K" , width: Int(imageSize.width), height: Int(imageSize.height))
+                let imageAnimator = ImageAnimator(renderSettings: settings , imagesArray: self.images)
+                imageAnimator.render() {
+                    print("yes")
+                    self.shutterButton.tintColor = UIColor.white
+                    self.images.removeAll()
+                    self.photoCounter = 0
+                }
+                
             }
+            catch{
+                
+            }
+            
+            
         })
     }
     
@@ -565,24 +581,23 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
     
-    
-    func jpgURL() -> URL{
+    func tmpURL(count: Int) -> URL{
         if uuid == nil{
             uuid = UUID().uuidString
         }
         var appendString = ""
-        if(photoCounter < 10){
-            appendString = "0000\(photoCounter)"
+        if(count < 10){
+            appendString = "0000\(count)"
         }
-        else if(photoCounter < 100){
-            appendString = "000\(photoCounter)"
+        else if(count < 100){
+            appendString = "000\(count)"
         }
-        else if(photoCounter < 1000){
-            appendString = "00\(photoCounter)"
-        }else if(photoCounter < 10000){
-            appendString = "0\(photoCounter)"
+        else if(count < 1000){
+            appendString = "00\(count)"
+        }else if(count < 10000){
+            appendString = "0\(count)"
         }else{
-            appendString = "\(photoCounter)"
+            appendString = "\(count)"
         }
         if let newUuid = uuid{
             let saveString = "IMG-" + newUuid + appendString + ".jpg"
@@ -591,9 +606,38 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         else {
             let saveString = "IMG-" + appendString + ".jpg"
             return cachesDirectory().appendingPathComponent(saveString)        }
-        
-        
     }
+
+    
+    
+//    func jpgURL() -> URL{
+//        if uuid == nil{
+//            uuid = UUID().uuidString
+//        }
+//        var appendString = ""
+//        if(photoCounter < 10){
+//            appendString = "0000\(photoCounter)"
+//        }
+//        else if(photoCounter < 100){
+//            appendString = "000\(photoCounter)"
+//        }
+//        else if(photoCounter < 1000){
+//            appendString = "00\(photoCounter)"
+//        }else if(photoCounter < 10000){
+//            appendString = "0\(photoCounter)"
+//        }else{
+//            appendString = "\(photoCounter)"
+//        }
+//        if let newUuid = uuid{
+//            let saveString = "IMG-" + newUuid + appendString + ".jpg"
+//            return cachesDirectory().appendingPathComponent(saveString)
+//        }
+//        else {
+//            let saveString = "IMG-" + appendString + ".jpg"
+//            return cachesDirectory().appendingPathComponent(saveString)        }
+//
+//
+//    }
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if photo.isRawPhoto{
@@ -637,6 +681,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         return contextForSaving.createCGImage(rawImage, from: rawImage.extent, format: kCIFormatRGBAh, colorSpace: CGColorSpace(name:CGColorSpace.extendedLinearSRGB), deferred: true)
     }
     
+    
+    
     func saveRawWithEmbeddedThumbnail(){
         self.checkPhotoLibraryAuthorization { (error) in}
         
@@ -656,14 +702,35 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             creationOptions.shouldMoveFile = true
             
             if rawPreferred{
-                /*convert raw to jpeg*/  
-                DispatchQueue.global(qos: .background).async {
+                /*convert raw to jpeg*/
+                
+                
+                DispatchQueue.global(qos: .default).sync {
                     if let rawAsCIImage = self.getAdjustedRaw(rawData: self.rawPhotoData){
-                        print(rawAsCIImage)
+//                        print(rawAsCIImage)
                         let myCGImage = self.createCGIImage(from: rawAsCIImage)
-                        let mynewUIImage = UIImage(cgImage: myCGImage!)
-                        print(mynewUIImage.imageOrientation.rawValue)
-                        self.images.append(mynewUIImage)
+                        let myNewPhotoData = UIImageJPEGRepresentation(UIImage(cgImage: myCGImage!), 0.8)
+                        print(myNewPhotoData)
+                        do {
+                            let myUrl = self.tmpURL(count: self.photoCounter)
+                            try myNewPhotoData?.write(to: myUrl)
+                            self.images.append(myUrl)
+                        }
+                        catch{
+                            print(error)
+                        }
+                    }
+                    self.processedPhotoCounter += 1
+                    print(self.processedPhotoCounter)
+                    print(self.photoCounter)
+                    
+                    //some bugs
+                    if self.processedPhotoCounter >= self.photoCounter && self.activeTimelapse == false {
+                        print("Start video creation")
+                        DispatchQueue.main.sync{
+                            self.createVideoFromImages()
+                        }
+                        
                     }
                 }
                 
@@ -677,7 +744,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                         let mynewUIImage = UIImage.init(cgImage: myCGImage!, scale: 1.0, orientation: testUI!.imageOrientation)
                         print(mynewUIImage)
                         print(mynewUIImage.imageOrientation.rawValue)
-                        self.images.append(mynewUIImage)
+//                        self.images.append(mynewUIImage)
                     }
                 }
                 
