@@ -56,6 +56,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     var startBrightness : CGFloat?
     
+    
+    var rawsToProcess = [Data]()
     var images = [URL]()
     
     var uuid: String?
@@ -447,6 +449,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         if(activeTimelapse == false){
             activeTimelapse = true
+            callProcessRawQueue()
             toggleProximitySensor()
             shutterButton.tintColor = UIColor.red
             //            how to use the timer
@@ -508,13 +511,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                     self.images.removeAll()
                     self.photoCounter = 0
                 }
-                
             }
             catch{
-                
             }
-            
-            
         })
     }
     
@@ -609,35 +608,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
 
     
-    
-//    func jpgURL() -> URL{
-//        if uuid == nil{
-//            uuid = UUID().uuidString
-//        }
-//        var appendString = ""
-//        if(photoCounter < 10){
-//            appendString = "0000\(photoCounter)"
-//        }
-//        else if(photoCounter < 100){
-//            appendString = "000\(photoCounter)"
-//        }
-//        else if(photoCounter < 1000){
-//            appendString = "00\(photoCounter)"
-//        }else if(photoCounter < 10000){
-//            appendString = "0\(photoCounter)"
-//        }else{
-//            appendString = "\(photoCounter)"
-//        }
-//        if let newUuid = uuid{
-//            let saveString = "IMG-" + newUuid + appendString + ".jpg"
-//            return cachesDirectory().appendingPathComponent(saveString)
-//        }
-//        else {
-//            let saveString = "IMG-" + appendString + ".jpg"
-//            return cachesDirectory().appendingPathComponent(saveString)        }
-//
-//
-//    }
+
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if photo.isRawPhoto{
@@ -681,7 +652,47 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         return contextForSaving.createCGImage(rawImage, from: rawImage.extent, format: kCIFormatRGBAh, colorSpace: CGColorSpace(name:CGColorSpace.extendedLinearSRGB), deferred: true)
     }
     
+    func callProcessRawQueue(){
+        DispatchQueue.global(qos: .default).async{
+            self.processRawQueue()
+        }
+    }
     
+    //right now only works with raw
+    //TODO: implement it jpeg
+    
+    func processRawQueue(){
+        var continueLoop = true
+        while continueLoop {
+            while !rawsToProcess.isEmpty{
+                print("Waiting list : \(rawsToProcess.count)")
+                let imageData = rawsToProcess.removeFirst()
+                if let rawAsCIImage = self.getAdjustedRaw(rawData: imageData){
+                    let myCGImage = self.createCGIImage(from: rawAsCIImage)
+                    let myNewPhotoData = UIImageJPEGRepresentation(UIImage(cgImage: myCGImage!), 0.8)
+                    do {
+                        let myUrl = self.tmpURL(count: processedPhotoCounter)
+                        try myNewPhotoData?.write(to: myUrl)
+                        self.images.append(myUrl)
+                        self.processedPhotoCounter += 1
+                        print("ProcessedCount \(self.processedPhotoCounter)")
+                        print("PhotoCount \(self.photoCounter)")
+                    }
+                    catch{
+                        print(error)
+                    }
+                }
+            }
+            
+            if self.processedPhotoCounter == self.photoCounter && self.activeTimelapse == false {
+                continueLoop = false
+                print("Start video creation")
+                DispatchQueue.main.async {
+                    self.createVideoFromImages()
+                }
+            }
+        }
+    }
     
     func saveRawWithEmbeddedThumbnail(){
         self.checkPhotoLibraryAuthorization { (error) in}
@@ -702,42 +713,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             creationOptions.shouldMoveFile = true
             
             if rawPreferred{
-                /*convert raw to jpeg*/
-                
-                
-                DispatchQueue.global(qos: .default).sync {
-                    if let rawAsCIImage = self.getAdjustedRaw(rawData: self.rawPhotoData){
-//                        print(rawAsCIImage)
-                        let myCGImage = self.createCGIImage(from: rawAsCIImage)
-                        let myNewPhotoData = UIImageJPEGRepresentation(UIImage(cgImage: myCGImage!), 0.8)
-                        print(myNewPhotoData)
-                        do {
-                            let myUrl = self.tmpURL(count: self.photoCounter)
-                            try myNewPhotoData?.write(to: myUrl)
-                            self.images.append(myUrl)
-                        }
-                        catch{
-                            print(error)
-                        }
-                    }
-                    self.processedPhotoCounter += 1
-                    print(self.processedPhotoCounter)
-                    print(self.photoCounter)
-                    
-                    //some bugs
-                    if self.processedPhotoCounter >= self.photoCounter && self.activeTimelapse == false {
-                        print("Start video creation")
-                        DispatchQueue.main.sync{
-                            self.createVideoFromImages()
-                        }
-                        
-                    }
-                }
+                self.rawsToProcess.append(self.rawPhotoData!)
                 
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
             else{
                 DispatchQueue.global(qos: .background).async {
+//                    do all these in the processRawData method
                     let testUI = UIImage(data: self.jpegPhotoData!)
                     if let jpegAsCIImage = CIImage(data: self.jpegPhotoData!){
                         let myCGImage = self.createCGIImage(from: jpegAsCIImage)

@@ -140,19 +140,17 @@ class ImageAnimator {
                 let imageDataUrl = images.removeFirst()
                 let imageData = try Data(contentsOf: imageDataUrl)
                 let image = UIImage(data: imageData)!
-                print(image.imageOrientation.rawValue)
+//                print(image.imageOrientation.rawValue)
                 let presentationTime = CMTimeMultiply(frameDuration, Int32(frameNum))
+                print("FrameNum: \(frameNum)")
                 let success = videoWriter.addImage(image: image, withPresentationTime: presentationTime)
                 if success == false {
                     fatalError("addImage() failed")
                 }
                 frameNum += 1
-                
             }
             catch{
-                
             }
-            
         }
         // Inform writer all buffers have been written.
         return true
