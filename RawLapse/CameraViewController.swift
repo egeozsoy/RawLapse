@@ -10,6 +10,8 @@ import UIKit
 import Dispatch
 import Photos
 import AVFoundation
+import MobileCoreServices
+import ImageIO
 
 class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     /*
@@ -301,11 +303,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     //    get preview by putting your hand
     func toggleProximitySensor(){
         let device = UIDevice.current
-        if activeTimelapse{
+        guard let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool] else{return}
+        if activeTimelapse==true && settingsDic["Screen Dimming"] == true {
             device.isProximityMonitoringEnabled = true
             NotificationCenter.default.addObserver(self, selector: #selector(adjustBrightness), name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
         }
-        else{
+        else if activeTimelapse == false{
             device.isProximityMonitoringEnabled = false
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
         }
@@ -451,6 +454,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         if(activeTimelapse == false){
             activeTimelapse = true
+            //till bug is found, call this at the very end
             callProcessQueue()
             toggleProximitySensor()
             shutterButton.tintColor = UIColor.red
@@ -484,17 +488,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         self.fixBrightness()
         activeTimelapse = false;
         shutterButton.tintColor = UIColor.blue
-        toggleProximitySensor()
-//        self.photoCounter = 0
+        //create video
+//        callProcessQueue()
         
-        /*
-        if createVideo {
-            createVideoFromImages()
-        }
- 
- */
+        toggleProximitySensor()
         return ;
     }
+    
     //still under development
     
     func createVideoFromImages(){
@@ -675,42 +675,44 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     //right now only works with raw
     //TODO: merge these two
-    
+    //autorelease pool for memory management - because of a bug in UIImagejpegRep
     func processRawQueue(){
         var continueLoop = true
         while continueLoop {
             while !rawsToProcess.isEmpty{
                 print("Waiting list : \(rawsToProcess.count)")
-                
-                let imageURL = rawsToProcess.removeFirst()
-                let imageData = try? Data(contentsOf: imageURL)
-                if let rawAsCIImage = self.getAdjustedRaw(rawData: imageData){
-                    let myCGImage = self.createCGIImage(from: rawAsCIImage)
-                    let myNewPhotoData = UIImageJPEGRepresentation(UIImage(cgImage: myCGImage!), 0.8)
+                    autoreleasepool{
+                        let imageURL = rawsToProcess.removeFirst()
+                        let imageData = try? Data(contentsOf: imageURL)
+                        if let rawAsCIImage = getAdjustedRaw(rawData: imageData){
+                            let myCGImage = createCGIImage(from: rawAsCIImage)
+                            let myNewImage = UIImage(cgImage: myCGImage!)
+                       let myNewPhotoData = UIImageJPEGRepresentation(myNewImage, 0.9)
                     do {
-                        let myUrl = self.tmpURL(count: processedPhotoCounter)
+                        let myUrl = tmpURL(count: processedPhotoCounter)
                         try myNewPhotoData?.write(to: myUrl)
-                        self.images.append(myUrl)
-                        self.processedPhotoCounter += 1
-                        print("ProcessedCount \(self.processedPhotoCounter)")
-                        print("PhotoCount \(self.photoCounter)")
+                        images.append(myUrl)
+                        processedPhotoCounter += 1
+                        print("ProcessedCount \(processedPhotoCounter)")
+                        print("PhotoCount \(photoCounter)")
                     }
                     catch{
                         print(error)
                     }
                 }
+                }
             }
-            
-            if self.processedPhotoCounter == self.photoCounter && self.activeTimelapse == false {
+
+            if self.processedPhotoCounter == photoCounter && activeTimelapse == false {
                 continueLoop = false
                 print("Start video creation")
                 DispatchQueue.main.async {
                     self.createVideoFromImages()
                 }
             }
-            sleep(3)
         }
     }
+    
     
     func processJpegQueue(){
         var continueLoop = true
@@ -753,15 +755,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func saveRawWithEmbeddedThumbnail(){
         self.checkPhotoLibraryAuthorization { (error) in}
-        
         let dngFileURL = uniqueURL()
         do{
             if let rawPhoto = rawPhotoData {
                 try rawPhoto.write(to: dngFileURL, options: [])
                 self.rawsToProcess.append(dngFileURL)
+                print("length of rawsToProcess: \(rawsToProcess.count)")
             }
         }
-        catch{return}
+        catch{
+            print("error \(photoCounter)")
+            return}
         
         guard let rawPreferred = rawButton?.isSelected else{ return}
         
