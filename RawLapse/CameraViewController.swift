@@ -57,7 +57,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var startBrightness : CGFloat?
     
     
-    var rawsToProcess = [Data]()
+//    var rawsToProcess = [Data]()
+    var rawsToProcess = [URL]()
+    var jpegsToProcess = [Data]()
     var images = [URL]()
     
     var uuid: String?
@@ -449,7 +451,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         if(activeTimelapse == false){
             activeTimelapse = true
-            callProcessRawQueue()
+            callProcessQueue()
             toggleProximitySensor()
             shutterButton.tintColor = UIColor.red
             //            how to use the timer
@@ -580,6 +582,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
     
+    
+    
+    
     func tmpURL(count: Int) -> URL{
         if uuid == nil{
             uuid = UUID().uuidString
@@ -652,21 +657,33 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         return contextForSaving.createCGImage(rawImage, from: rawImage.extent, format: kCIFormatRGBAh, colorSpace: CGColorSpace(name:CGColorSpace.extendedLinearSRGB), deferred: true)
     }
     
-    func callProcessRawQueue(){
-        DispatchQueue.global(qos: .default).async{
-            self.processRawQueue()
+    func callProcessQueue(){
+        if rawButton!.isSelected {
+            //raw queue
+            DispatchQueue.global(qos: .default).async{
+                self.processRawQueue()
+            }
+        }
+        else{
+            //jpeg
+            print("here")
+            DispatchQueue.global(qos: .default).async{
+                self.processJpegQueue()
+            }
         }
     }
     
     //right now only works with raw
-    //TODO: implement it jpeg
+    //TODO: merge these two
     
     func processRawQueue(){
         var continueLoop = true
         while continueLoop {
             while !rawsToProcess.isEmpty{
                 print("Waiting list : \(rawsToProcess.count)")
-                let imageData = rawsToProcess.removeFirst()
+                
+                let imageURL = rawsToProcess.removeFirst()
+                let imageData = try? Data(contentsOf: imageURL)
                 if let rawAsCIImage = self.getAdjustedRaw(rawData: imageData){
                     let myCGImage = self.createCGIImage(from: rawAsCIImage)
                     let myNewPhotoData = UIImageJPEGRepresentation(UIImage(cgImage: myCGImage!), 0.8)
@@ -691,8 +708,48 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                     self.createVideoFromImages()
                 }
             }
+            sleep(3)
         }
     }
+    
+    func processJpegQueue(){
+        var continueLoop = true
+        while continueLoop {
+            while !jpegsToProcess.isEmpty{
+                print("Waiting list : \(jpegsToProcess.count)")
+                let imageData = jpegsToProcess.removeFirst()
+                let testUI = UIImage(data: imageData)
+                if let jpegAsCIImage = CIImage(data: imageData){
+                    let myCGImage = self.createCGIImage(from: jpegAsCIImage)
+                    let mynewUIImage = UIImage.init(cgImage: myCGImage!, scale: 1.0, orientation: testUI!.imageOrientation)
+                    let myNewPhotoData = UIImageJPEGRepresentation(mynewUIImage, 0.8)
+                    
+                    do {
+                        let myUrl = self.tmpURL(count: processedPhotoCounter)
+                        try myNewPhotoData?.write(to: myUrl)
+                        self.images.append(myUrl)
+                        self.processedPhotoCounter += 1
+                        print("ProcessedCount \(self.processedPhotoCounter)")
+                        print("PhotoCount \(self.photoCounter)")
+                    }
+                    catch{
+                        print(error)
+                    }
+                }
+            }
+            
+            if self.processedPhotoCounter == self.photoCounter && self.activeTimelapse == false {
+                continueLoop = false
+                print("Start video creation")
+                DispatchQueue.main.async {
+                    self.createVideoFromImages()
+                }
+            }
+            sleep(3)
+        }
+        
+    }
+    
     
     func saveRawWithEmbeddedThumbnail(){
         self.checkPhotoLibraryAuthorization { (error) in}
@@ -701,6 +758,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         do{
             if let rawPhoto = rawPhotoData {
                 try rawPhoto.write(to: dngFileURL, options: [])
+                self.rawsToProcess.append(dngFileURL)
             }
         }
         catch{return}
@@ -710,26 +768,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         PHPhotoLibrary.shared().performChanges({
             let creationRequet = PHAssetCreationRequest.forAsset()
             let creationOptions = PHAssetResourceCreationOptions()
-            creationOptions.shouldMoveFile = true
+            creationOptions.shouldMoveFile = false
             
             if rawPreferred{
-                self.rawsToProcess.append(self.rawPhotoData!)
-                
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
             else{
-                DispatchQueue.global(qos: .background).async {
-//                    do all these in the processRawData method
-                    let testUI = UIImage(data: self.jpegPhotoData!)
-                    if let jpegAsCIImage = CIImage(data: self.jpegPhotoData!){
-                        let myCGImage = self.createCGIImage(from: jpegAsCIImage)
-                        let mynewUIImage = UIImage.init(cgImage: myCGImage!, scale: 1.0, orientation: testUI!.imageOrientation)
-                        print(mynewUIImage)
-                        print(mynewUIImage.imageOrientation.rawValue)
-//                        self.images.append(mynewUIImage)
-                    }
-                }
-                
+                self.jpegsToProcess.append(self.jpegPhotoData!)
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
             }
         }, completionHandler: nil)

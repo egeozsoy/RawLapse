@@ -273,7 +273,7 @@ class VideoWriter {
             newImage = createMatchingBackingDataWithImage(imageRef: image.cgImage, orienation: .down)
         }
         else if  image.imageOrientation.rawValue == 3 {
-            print("Portrait Fix")
+//            print("Portrait Fix")
             newImage = createMatchingBackingDataWithImage(imageRef: image.cgImage, orienation: .left)
         }
         else {
