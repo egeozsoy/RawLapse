@@ -20,12 +20,13 @@ struct RenderSettings {
     var height: CGFloat = 2160
     var fps: Int32 = 24
     var avCodecKey = AVVideoCodecType.hevc
+//    give option for h264
     var videoFilename = "Timelapse1"
     var videoFilenameExt = "mp4"
     
     init(orientation imageOrientation : UIImageOrientation , quality res : String , width imageWidth: Int , height imageHeight: Int) {
         switch res {
-            
+        
         case "4K":
                 if imageWidth > imageHeight {
                     self.width = 3840

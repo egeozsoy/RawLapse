@@ -375,26 +375,28 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
     }
     
+    var rotationAngle: Double = 0
     //    changes button orientation
     @objc func newOrientation(notification: Notification){
-        var angle: Double
         switch UIDevice.current.orientation {
         case UIDeviceOrientation.landscapeLeft:
-            angle = Double.pi / 2
+            rotationAngle = Double.pi / 2
             break;
         case UIDeviceOrientation.landscapeRight:
-            angle = -(Double.pi / 2)
+            rotationAngle = -(Double.pi / 2)
+            break;
+        case UIDeviceOrientation.portrait:
+            rotationAngle = 0
             break;
         default:
-            angle = 0
             break;
         }
-        self.lockAEButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
-        self.lockFocusButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
-        self.rawButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
-        self.hudButton.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
-        self.photoCounterLabel.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
-        self.settingsTextView.transform = CGAffineTransform.init(rotationAngle: CGFloat(angle))
+        self.lockAEButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.lockFocusButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.rawButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.hudButton.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.photoCounterLabel.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.settingsTextView.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
     }
     
     func showAlert(withTitle title:String , withMessage message:String){
@@ -441,6 +443,15 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
+    func resetParameters(){
+        print("resetting")
+        rawsToProcess = []
+        jpegsToProcess = []
+        photoCounter = 0
+        processedPhotoCounter = 0
+        images = []
+    }
+    
     @objc func startTimelapse(){
         setupRawJpeg(rawSupported: rawButton!.isSelected)
         
@@ -453,6 +464,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         dimScreen()
         
         if(activeTimelapse == false){
+            
             activeTimelapse = true
             //till bug is found, call this at the very end
             callProcessQueue()
@@ -511,7 +523,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                     print("yes")
                     self.shutterButton.tintColor = UIColor.white
                     self.images.removeAll()
-                    self.photoCounter = 0
+                    self.resetParameters()
                 }
             }
             catch{
@@ -519,14 +531,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         })
     }
     
+    var imageOrientation: AVCaptureVideoOrientation = .portrait
+    
     func managePhotoOrientation() -> AVCaptureVideoOrientation {
         
         var currentDevice: UIDevice
         currentDevice = .current
         var deviceOrientation: UIDeviceOrientation
         deviceOrientation = currentDevice.orientation
-        
-        var imageOrientation: AVCaptureVideoOrientation
         
         if deviceOrientation == .portrait {
             imageOrientation = .portrait
@@ -536,8 +548,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             imageOrientation = .landscapeLeft
         }else if (deviceOrientation == .portraitUpsideDown){
             imageOrientation = .portraitUpsideDown
-        }else{
-            imageOrientation = .portrait
         }
         return imageOrientation
     }
