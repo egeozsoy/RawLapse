@@ -13,7 +13,8 @@ class SettingsTableViewController: UITableViewController {
     let cellId = "cellId"
     let screenDiming = "Screen Dimming"
     let ruleOfThirds = "ruleOfThirds"
-    lazy var settingsArray = [screenDiming, ruleOfThirds]
+    let middleScreen = "middleScreen"
+    lazy var settingsArray = [screenDiming, ruleOfThirds ,middleScreen]
     lazy var settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String: Bool]
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -38,6 +39,7 @@ class SettingsTableViewController: UITableViewController {
         navigationController?.dismiss(animated: true) {
             let delegate = UIApplication.shared.delegate as! AppDelegate
             delegate.cameraViewController.setRuleOfThirdsViewer()
+            delegate.cameraViewController.setmiddleScreenViewer()
         }
     }
     

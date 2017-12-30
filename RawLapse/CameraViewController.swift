@@ -76,6 +76,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         imageviewer.translatesAutoresizingMaskIntoConstraints = false
         return imageviewer
     }()
+    let middleScreenViewer: UIImageView  = {
+        let imageviewer = UIImageView()
+        var image = UIImage(named: "middleScreen")
+        imageviewer.image = image
+        imageviewer.translatesAutoresizingMaskIntoConstraints = false
+        return imageviewer
+    }()
+    
     
     var forceLockScreenDimming = false
     
@@ -215,6 +223,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         let y = (height - wantedHeight)/2
         cameraPreviewLayerFrame = CGRect(x: x, y: y, width: width , height: wantedHeight)
         setRuleOfThirdsViewer()
+        setmiddleScreenViewer()
         
     }
     
@@ -880,6 +889,23 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
         }
     }
+    
+    func setmiddleScreenViewer(){
+        
+        if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
+            if settingsDic["middleScreen"] == true {
+                self.view.addSubview(middleScreenViewer)
+                middleScreenViewer.heightAnchor.constraint(equalToConstant: cameraPreviewLayerFrame!.height ).isActive = true
+                middleScreenViewer.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
+                middleScreenViewer.leftAnchor.constraint(equalTo: self.view.leftAnchor).isActive = true
+                middleScreenViewer.rightAnchor.constraint(equalTo: self.view.rightAnchor).isActive = true
+            }
+            else {
+                middleScreenViewer.removeFromSuperview()
+            }
+        }
+    }
+    
     
     @objc func showSettingsPage(){
         let tablecontroller =  SettingsTableViewController()
