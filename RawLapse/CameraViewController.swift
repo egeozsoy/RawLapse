@@ -39,6 +39,15 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var hudActive = false
     var hudView: Hud?
     
+    //customSettings
+    var buttonsSet = false
+    var startBrightness : CGFloat?
+    var uuid: String?
+    var labelUpdateTimer: Timer?
+    var forceLockScreenDimming = false
+    let disabledColor = UIColor.init(white: 0.5, alpha: 0.5)
+    var rotationAngle: Double = 0
+    
     //    timelapse settings
     var timelapseTimer: Timer?
     var photoCounter = 0
@@ -51,27 +60,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var amountOfPhotos: Int?
     var continuous: Bool?
     
+    //    exportSettings
     var processedPhotoCounter = 0
-    
-    var buttonsSet = false
     let createVideo = true
-    
-    var startBrightness : CGFloat?
-    
-    
-//    var rawsToProcess = [Data]()
     var rawsToProcess = [URL]()
     var jpegsToProcess = [Data]()
     var images = [URL]()
     
-    var uuid: String?
-    var labelUpdateTimer: Timer?
-    
+    //    initialize
     let ruleOfThirdsViewer: UIImageView  = {
         let imageviewer = UIImageView()
         var image = UIImage(named: "ruleOfThirdsGrid")
-        
-        
         imageviewer.image = image
         imageviewer.translatesAutoresizingMaskIntoConstraints = false
         return imageviewer
@@ -83,12 +82,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         imageviewer.translatesAutoresizingMaskIntoConstraints = false
         return imageviewer
     }()
-    
-    
-    var forceLockScreenDimming = false
-    
-    let disabledColor = UIColor.init(white: 0.5, alpha: 0.5)
-    
     let shutterButton: UIButton = {
         let button = UIButton()
         var image = UIImage(named: "shutter_icon")
@@ -99,7 +92,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         button.addTarget(self, action: #selector(startTimelapse), for: .touchUpInside)
         return button
     }()
-    
     let settingsTextView:UITextView = {
         let tv = UITextView()
         tv.isEditable = false
@@ -110,7 +102,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         tv.translatesAutoresizingMaskIntoConstraints = false
         return tv
     }()
-    
     let hudButton:UIButton = {
         let button = UIButton()
         button.setTitle("HUD", for: .normal)
@@ -118,21 +109,18 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         button.addTarget(self, action: #selector(handleHud), for: .touchUpInside)
         return button
     }()
-    
     let slimTopBar: UIView = {
         let bar = UIView()
         bar.backgroundColor = UIColor.black
         bar.translatesAutoresizingMaskIntoConstraints = false
         return bar
     }()
-    
     let bottomBar: UIView = {
         let bar = UIView()
         bar.backgroundColor = UIColor.black
         bar.translatesAutoresizingMaskIntoConstraints = false
         return bar
     }()
-    
     let photoCounterLabel: UILabel = {
         let label = UILabel()
         label.backgroundColor = UIColor.clear
@@ -141,15 +129,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
     override var prefersStatusBarHidden: Bool {
         return true
     }
-    
     override var shouldAutorotate: Bool{
         return false
     }
     
+    //   MARK:  camera Setups
     func setupCaptureSession(){
         captureSession.sessionPreset = AVCaptureSession.Preset.photo
     }
@@ -171,18 +158,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             let captureDeviceInput = try AVCaptureDeviceInput(device: currentCamera)
             guard self.captureSession.canAddInput(captureDeviceInput) else { return }
             self.captureSession.addInput(captureDeviceInput)
-            
             self.photoOutput = AVCapturePhotoOutput()
             guard self.captureSession.canAddOutput(self.photoOutput!) else { return }
             self.captureSession.addOutput(self.photoOutput!)
-            
             try? currentCamera.lockForConfiguration()
             currentCamera.setExposureModeCustom(duration: currentCamera.activeFormat.maxExposureDuration, iso: currentCamera.activeFormat.minISO, completionHandler: nil)
             currentCamera.exposureMode = .continuousAutoExposure
             currentCamera.unlockForConfiguration()
             self.updateLabels()
-            
-        }catch let error {
+        }
+        catch let error {
             print(error)
         }
     }
@@ -224,23 +209,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         cameraPreviewLayerFrame = CGRect(x: x, y: y, width: width , height: wantedHeight)
         setRuleOfThirdsViewer()
         setmiddleScreenViewer()
-        
     }
     
     func startRunningCaptureSession(){
         captureSession.startRunning()
-    }
-    
-    func updateLabels(){
-        if let camera = currentCamera {
-            settingsTextView.text = "ISO: \(Int(camera.iso))\nShutter: 1/\(Int(1 / (camera.exposureDuration).seconds))\nEV:\(camera.exposureTargetBias)"
-            if pickerViewController.continuous  {
-                photoCounterLabel.text = "\(photoCounter)/∞"
-            }
-            else {
-                photoCounterLabel.text = "\(photoCounter)/\(pickerViewController.amountOfPhotos)"
-            }
-        }
     }
     
     func lockUnlockExposureFocus(toggleExposure exposureToggle:Bool , toggleFocus focusToggle:Bool){
@@ -309,27 +281,21 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         currentCamera.unlockForConfiguration()
     }
     
-    //    get preview by putting your hand
-    func toggleProximitySensor(){
-        let device = UIDevice.current
-        guard let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool] else{return}
-        if activeTimelapse==true && settingsDic["Screen Dimming"] == true {
-            device.isProximityMonitoringEnabled = true
-            NotificationCenter.default.addObserver(self, selector: #selector(adjustBrightness), name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
-        }
-        else if activeTimelapse == false{
-            device.isProximityMonitoringEnabled = false
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
-        }
-    }
-    
-    @objc func adjustBrightness(notification: NSNotification){
-        let device = notification.object as? UIDevice
-        if device?.proximityState == true && activeTimelapse == true{
-            UIScreen.main.brightness = 1.0
-            Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { (timer) in
-                self.dimScreen()
-            })
+    //    helper Functions
+    func updateLabels(){
+        if let camera = currentCamera {
+            settingsTextView.text = "ISO: \(Int(camera.iso))\nShutter: 1/\(Int(1 / (camera.exposureDuration).seconds))\nEV:\(camera.exposureTargetBias)"
+            if activeTimelapse == false && processedPhotoCounter > 0 {
+                photoCounterLabel.text = "\(processedPhotoCounter)/\(photoCounter)"
+            }
+            else{
+                if pickerViewController.continuous  {
+                    photoCounterLabel.text = "\(photoCounter)/∞"
+                }
+                else{
+                    photoCounterLabel.text = "\(photoCounter)/\(pickerViewController.amountOfPhotos)"
+                }
+            }
         }
     }
     
@@ -349,6 +315,108 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         if labelUpdateTimer != nil{
             labelUpdateTimer?.invalidate()
             labelUpdateTimer = nil
+        }
+    }
+    
+    @objc func adjustBrightness(notification: NSNotification){
+        let device = notification.object as? UIDevice
+        if device?.proximityState == true && activeTimelapse == true{
+            UIScreen.main.brightness = 1.0
+            Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { (timer) in
+                self.dimScreen()
+            })
+        }
+    }
+    
+    func showAlert(withTitle title:String , withMessage message:String){
+        let alert = UIAlertController(title: title,
+                                      message:  message,
+                                      preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alert.addAction(okAction)
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func fixBrightness(){
+        if let brightness = self.startBrightness {
+            UIScreen.main.brightness = brightness
+        }
+    }
+    
+    func dimScreen(){
+        if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
+            if settingsDic["Screen Dimming"] == true && forceLockScreenDimming == false {
+                UIScreen.main.brightness = 0.0
+            }
+        }
+    }
+    
+    func rawNotSupportedOnDevice() -> Bool {
+        return (photoOutput?.availableRawPhotoFileTypes == nil  || photoOutput?.availableRawPhotoFileTypes.count == 0)
+    }
+    
+    func resetParameters(){
+        print("resetting")
+        rawsToProcess = []
+        jpegsToProcess = []
+        photoCounter = 0
+        processedPhotoCounter = 0
+        images = []
+    }
+    
+    //    changes button orientation
+    @objc func newOrientation(notification: Notification){
+        switch UIDevice.current.orientation {
+        case UIDeviceOrientation.landscapeLeft:
+            rotationAngle = Double.pi / 2
+            break;
+        case UIDeviceOrientation.landscapeRight:
+            rotationAngle = -(Double.pi / 2)
+            break;
+        case UIDeviceOrientation.portrait:
+            rotationAngle = 0
+            break;
+        default:
+            break;
+        }
+        self.lockAEButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.lockFocusButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.rawButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.hudButton.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.photoCounterLabel.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+        self.settingsTextView.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
+    }
+    
+    @objc func toggleRawButton(){
+        if activeTimelapse == false{
+            if rawButton?.isSelected == true{
+                rawButton?.isSelected = false
+            }
+            else{
+                if rawNotSupportedOnDevice(){
+                    rawButton?.isEnabled = false
+                    //                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos, you can still use RawLapse for taking JPEG photos")
+                }
+                else{
+                    rawButton?.isEnabled = true
+                    rawButton?.isSelected = true
+                }
+            }
+        }
+    }
+    
+    
+    //    get preview by putting your hand
+    func toggleProximitySensor(){
+        let device = UIDevice.current
+        guard let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool] else{return}
+        if activeTimelapse==true && settingsDic["Screen Dimming"] == true {
+            device.isProximityMonitoringEnabled = true
+            NotificationCenter.default.addObserver(self, selector: #selector(adjustBrightness), name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
+        }
+        else if activeTimelapse == false{
+            device.isProximityMonitoringEnabled = false
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
         }
     }
     
@@ -373,7 +441,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 self.toggleRawButton()
             }
         }
-        
         checkPhotoLibraryAuthorization {(error) in}
         //        allows buttons to change orientation
         NotificationCenter.default.addObserver(self, selector: #selector(newOrientation), name: Notification.Name.UIDeviceOrientationDidChange, object: nil)
@@ -381,84 +448,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         addViews()
         setupUI()
         startBrightness = UIScreen.main.brightness
-        
-    }
-    
-    var rotationAngle: Double = 0
-    //    changes button orientation
-    @objc func newOrientation(notification: Notification){
-        switch UIDevice.current.orientation {
-        case UIDeviceOrientation.landscapeLeft:
-            rotationAngle = Double.pi / 2
-            break;
-        case UIDeviceOrientation.landscapeRight:
-            rotationAngle = -(Double.pi / 2)
-            break;
-        case UIDeviceOrientation.portrait:
-            rotationAngle = 0
-            break;
-        default:
-            break;
-        }
-        self.lockAEButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
-        self.lockFocusButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
-        self.rawButton?.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
-        self.hudButton.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
-        self.photoCounterLabel.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
-        self.settingsTextView.transform = CGAffineTransform.init(rotationAngle: CGFloat(rotationAngle))
-    }
-    
-    func showAlert(withTitle title:String , withMessage message:String){
-        let alert = UIAlertController(title: title,
-                                      message:  message,
-                                      preferredStyle: .alert)
-        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-        alert.addAction(okAction)
-        present(alert, animated: true, completion: nil)
-    }
-    
-    func rawNotSupportedOnDevice() -> Bool {
-        return (photoOutput?.availableRawPhotoFileTypes == nil  || photoOutput?.availableRawPhotoFileTypes.count == 0)
-    }
-    
-    @objc func toggleRawButton(){
-        if activeTimelapse == false{
-            if rawButton?.isSelected == true{
-                rawButton?.isSelected = false
-            }
-            else{
-                if rawNotSupportedOnDevice(){
-                    rawButton?.isEnabled = false
-                    //                    showAlert(withTitle: "Device not supported", withMessage: "RAW mode is only available on devices, that support raw photos, you can still use RawLapse for taking JPEG photos")
-                }
-                else{
-                    rawButton?.isEnabled = true
-                    rawButton?.isSelected = true
-                }
-            }
-        }
-    }
-    func fixBrightness(){
-        if let brightness = self.startBrightness {
-            UIScreen.main.brightness = brightness
-        }
-    }
-    
-    func dimScreen(){
-        if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
-            if settingsDic["Screen Dimming"] == true && forceLockScreenDimming == false {
-                UIScreen.main.brightness = 0.0
-            }
-        }
-    }
-    
-    func resetParameters(){
-        print("resetting")
-        rawsToProcess = []
-        jpegsToProcess = []
-        photoCounter = 0
-        processedPhotoCounter = 0
-        images = []
     }
     
     @objc func startTimelapse(){
@@ -510,13 +499,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         activeTimelapse = false;
         shutterButton.tintColor = UIColor.blue
         //create video
-//        callProcessQueue()
+        //        callProcessQueue()
         
         toggleProximitySensor()
         return ;
     }
-    
-    //still under development
     
     func createVideoFromImages(){
         shutterButton.tintColor = self.disabledColor
@@ -601,9 +588,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
     
-    
-    
-    
     func tmpURL(count: Int) -> URL{
         if uuid == nil{
             uuid = UUID().uuidString
@@ -630,9 +614,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             let saveString = "IMG-" + appendString + ".jpg"
             return cachesDirectory().appendingPathComponent(saveString)        }
     }
-
-    
-
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if photo.isRawPhoto{
@@ -678,60 +659,61 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func callProcessQueue(){
         if rawButton!.isSelected {
-            //raw queue
             DispatchQueue.global(qos: .default).async{
                 self.processRawQueue()
             }
         }
         else{
-            //jpeg
-            print("here")
             DispatchQueue.global(qos: .default).async{
                 self.processJpegQueue()
             }
         }
     }
     
-    //right now only works with raw
-    //TODO: merge these two
+    fileprivate func shouldCreateVideo(_ continueLoop: inout Bool) {
+        if self.processedPhotoCounter == photoCounter && activeTimelapse == false {
+            continueLoop = false
+            print("Start video creation")
+            DispatchQueue.main.async {
+                self.createVideoFromImages()
+            }
+        }
+    }
+    
+    fileprivate func createImageAndAddToList(_ myNewPhotoData: Data?) throws {
+        let myUrl = tmpURL(count: processedPhotoCounter)
+        try myNewPhotoData?.write(to: myUrl)
+        images.append(myUrl)
+        processedPhotoCounter += 1
+        print("ProcessedCount \(processedPhotoCounter)")
+        print("PhotoCount \(photoCounter)")
+    }
+    
     //autorelease pool for memory management - because of a bug in UIImagejpegRep
     func processRawQueue(){
         var continueLoop = true
         while continueLoop {
             while !rawsToProcess.isEmpty{
                 print("Waiting list : \(rawsToProcess.count)")
-                    autoreleasepool{
-                        let imageURL = rawsToProcess.removeFirst()
-                        let imageData = try? Data(contentsOf: imageURL)
-                        if let rawAsCIImage = getAdjustedRaw(rawData: imageData){
-                            let myCGImage = createCGIImage(from: rawAsCIImage)
-                            let myNewImage = UIImage(cgImage: myCGImage!)
-                       let myNewPhotoData = UIImageJPEGRepresentation(myNewImage, 0.9)
-                    do {
-                        let myUrl = tmpURL(count: processedPhotoCounter)
-                        try myNewPhotoData?.write(to: myUrl)
-                        images.append(myUrl)
-                        processedPhotoCounter += 1
-                        print("ProcessedCount \(processedPhotoCounter)")
-                        print("PhotoCount \(photoCounter)")
-                    }
-                    catch{
-                        print(error)
+                autoreleasepool{
+                    let imageURL = rawsToProcess.removeFirst()
+                    let imageData = try? Data(contentsOf: imageURL)
+                    if let rawAsCIImage = getAdjustedRaw(rawData: imageData){
+                        let myCGImage = createCGIImage(from: rawAsCIImage)
+                        let myNewImage = UIImage(cgImage: myCGImage!)
+                        let myNewPhotoData = UIImageJPEGRepresentation(myNewImage, 0.9)
+                        do {
+                            try createImageAndAddToList(myNewPhotoData)
+                        }
+                        catch{
+                            print(error)
+                        }
                     }
                 }
-                }
             }
-
-            if self.processedPhotoCounter == photoCounter && activeTimelapse == false {
-                continueLoop = false
-                print("Start video creation")
-                DispatchQueue.main.async {
-                    self.createVideoFromImages()
-                }
-            }
+            shouldCreateVideo(&continueLoop)
         }
     }
-    
     
     func processJpegQueue(){
         var continueLoop = true
@@ -744,33 +726,18 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                     let myCGImage = self.createCGIImage(from: jpegAsCIImage)
                     let mynewUIImage = UIImage.init(cgImage: myCGImage!, scale: 1.0, orientation: testUI!.imageOrientation)
                     let myNewPhotoData = UIImageJPEGRepresentation(mynewUIImage, 0.8)
-                    
                     do {
-                        let myUrl = self.tmpURL(count: processedPhotoCounter)
-                        try myNewPhotoData?.write(to: myUrl)
-                        self.images.append(myUrl)
-                        self.processedPhotoCounter += 1
-                        print("ProcessedCount \(self.processedPhotoCounter)")
-                        print("PhotoCount \(self.photoCounter)")
+                        try createImageAndAddToList(myNewPhotoData)
                     }
                     catch{
                         print(error)
                     }
                 }
             }
-            
-            if self.processedPhotoCounter == self.photoCounter && self.activeTimelapse == false {
-                continueLoop = false
-                print("Start video creation")
-                DispatchQueue.main.async {
-                    self.createVideoFromImages()
-                }
-            }
-            sleep(3)
+            shouldCreateVideo(&continueLoop)
         }
         
     }
-    
     
     func saveRawWithEmbeddedThumbnail(){
         self.checkPhotoLibraryAuthorization { (error) in}
