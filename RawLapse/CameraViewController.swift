@@ -39,6 +39,9 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var hudActive = false
     var hudView: Hud?
     
+//    introView
+    var introView: IntroView?
+    
     //customSettings
     var buttonsSet = false
     var startBrightness : CGFloat?
@@ -448,6 +451,18 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         addViews()
         setupUI()
         startBrightness = UIScreen.main.brightness
+        
+//        only show the firsttime
+        if UserDefaults.standard.bool(forKey: "secondTime") == false{
+            introView = IntroView.introview(inView: self.view)
+            introView?.setupInsideView()
+            introView?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(clearIntroView)))
+            UserDefaults.standard.set(true, forKey: "secondTime")
+        }
+    }
+    
+    @objc func clearIntroView(){
+        introView?.animateOut()
     }
     
     @objc func startTimelapse(){

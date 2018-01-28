@@ -103,7 +103,7 @@ class Hud: UIView {
         let width:Double = Double(view.frame.width * CGFloat( 0.95))
         let height:Double = 80
         let x:Double = Double(view.frame.midX) - width/2
-        let y:Double = Double(view.frame.minY + CGFloat(40))
+        let y:Double = Double(view.safeAreaLayoutGuide.layoutFrame.minY + CGFloat(40))
         let frame = CGRect(x: x, y: y, width: width, height: height)
         let hudView = Hud(frame: frame)
         //        hudView.setupInsideHud()
