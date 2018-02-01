@@ -65,7 +65,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     //    exportSettings
     var processedPhotoCounter = 0
-    let createVideo = true
+    var createVideo = true
     var rawsToProcess = [URL]()
     var jpegsToProcess = [Data]()
     var images = [URL]()
@@ -247,6 +247,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         if(tap.location(in: self.view).y < (self.view.frame.height - cameraPreviewLayerFrame.height) / 2 || tap.location(in: self.view).y > (self.view.frame.height - cameraPreviewLayerFrame.height) / 2 + cameraPreviewLayerFrame.height ){
         }else{
             try? currentCamera?.lockForConfiguration()
+            drawExposureCircle(tapPoint: tap.location(in: self.view))
             let x = tap.location(in: self.view).y / self.view.bounds.size.height
             let y = 1 - tap.location(in: self.view).x / self.view.bounds.size.width
             let point = CGPoint(x: x, y: y)
@@ -261,6 +262,35 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             currentCamera?.unlockForConfiguration()
         }
         updateLabels()
+    }
+    
+    
+    func drawExposureCircle( tapPoint : CGPoint){
+        let circlePath = UIBezierPath(arcCenter: tapPoint, radius: CGFloat(30), startAngle: CGFloat(0), endAngle:CGFloat(Double.pi * 2), clockwise: true)
+        
+        let shapeLayer = CAShapeLayer()
+        shapeLayer.path = circlePath.cgPath
+        //change the fill color
+        shapeLayer.fillColor = UIColor.clear.cgColor
+        //you can change the stroke color
+        shapeLayer.strokeColor = UIColor.orange.cgColor
+        //you can change the line width
+        shapeLayer.lineWidth = 3.0
+        
+        let circleView = UIView(frame: self.view.frame)
+        circleView.layer.addSublayer(shapeLayer)
+        self.view.addSubview(circleView)
+        
+        circleView.alpha = 0.0
+        UIView.animate(withDuration: 1) {
+            circleView.alpha = 0.9
+        }
+        UIView.animate(withDuration: 1, animations: {
+            circleView.alpha = 0
+        }) { (completed) in
+            circleView.removeFromSuperview()
+        }
+        
     }
     
     @objc func handleSettingTap(_ tap : UITapGestureRecognizer ){
@@ -476,6 +506,15 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         dimScreen()
         
+        guard let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool] else{return}
+        if settingsDic["Create video"] == true{
+            createVideo = true
+        }
+        else{
+            createVideo =  false
+        }
+        
+        
         if(activeTimelapse == false){
             
             activeTimelapse = true
@@ -512,11 +551,18 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         timelapseTimer?.invalidate();
         self.fixBrightness()
         activeTimelapse = false;
+        if createVideo{
         shutterButton.tintColor = UIColor.blue
+        }
+        else{
+            shutterButton.tintColor = UIColor.white
+            self.resetParameters()
+        }
         //create video
         //        callProcessQueue()
         
         toggleProximitySensor()
+        
         return ;
     }
     
@@ -673,6 +719,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     func callProcessQueue(){
+        if createVideo == false{
+            return
+        }
+        
         if rawButton!.isSelected {
             DispatchQueue.global(qos: .default).async{
                 self.processRawQueue()
@@ -686,7 +736,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     fileprivate func shouldCreateVideo(_ continueLoop: inout Bool) {
-        if self.processedPhotoCounter == photoCounter && activeTimelapse == false {
+        if self.processedPhotoCounter == photoCounter && activeTimelapse == false && self.createVideo == true {
             continueLoop = false
             print("Start video creation")
             DispatchQueue.main.async {

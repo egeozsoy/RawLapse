@@ -14,7 +14,8 @@ class SettingsTableViewController: UITableViewController {
     let screenDiming = "Screen Dimming"
     let ruleOfThirds = "ruleOfThirds"
     let middleScreen = "middleScreen"
-    lazy var settingsArray = [screenDiming, ruleOfThirds ,middleScreen]
+    let createVideo = "Create video"
+    lazy var settingsArray = [screenDiming, ruleOfThirds ,middleScreen , createVideo]
     lazy var settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String: Bool]
     override func viewDidLoad() {
         super.viewDidLoad()
