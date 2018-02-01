@@ -144,17 +144,36 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         captureSession.sessionPreset = AVCaptureSession.Preset.photo
     }
     
-    func setupDevice(){
+    func setupDevice(telephotoCamera telephoto:Bool){
+        if telephoto {
+            print("tel")
+            let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInTelephotoCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
+            
+            let device = deviceDiscoverySession.devices.first
+            currentCamera = device
+            
+        }
+            
+        else{
         let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
         
         let device = deviceDiscoverySession.devices.first
         currentCamera = device
+        }
     }
+    
+    func switchCamera(changeToTelephoto telephoto:Bool){
+        captureSession = AVCaptureSession()
+        cameraPreviewLayer?.removeFromSuperlayer()
+        setupCameras(telephoto: telephoto)
+    }
+    
     
     func setupInputOutput(){
         do{
             guard let currentCamera = self.currentCamera else {
                 self.shutterButton.tintColor = self.disabledColor
+                print(" no Change")
                 self.showAlert(withTitle: "No Camera", withMessage: "Make sure your device supports a camera")
                 return
             }
@@ -204,6 +223,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         cameraPreviewLayer.videoGravity = .resizeAspect
         cameraPreviewLayer.frame = self.view.frame
         self.view.layer.insertSublayer(cameraPreviewLayer, at: 0)
+        
         let  x = cameraPreviewLayer.frame.minX
         let width = cameraPreviewLayer.frame.width
         let height = cameraPreviewLayer.frame.height
@@ -453,6 +473,35 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
+    func setupCameras(telephoto:Bool){
+            self.setupCaptureSession()
+            self.setupDevice(telephotoCamera: telephoto)
+            self.setupPreviewLayer()
+            self.startRunningCaptureSession()
+            self.setupInputOutput()
+    }
+    
+    var changedShortly = false
+    
+    @objc func printPinchFactor(_ gestureRecognizer : UIPinchGestureRecognizer){
+        if changedShortly == false{
+            if gestureRecognizer.scale > 2.5 {
+                switchCamera(changeToTelephoto:  true)
+                changedShortly = true
+                Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (booly) in
+                    self.changedShortly = false
+                })
+            }
+            else if gestureRecognizer.scale < 0.4{
+                switchCamera(changeToTelephoto:  false)
+                changedShortly = true
+                Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (booly) in
+                    self.changedShortly = false
+                })
+            }
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingTap(_:))))
@@ -460,17 +509,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         leftSwipeRecognizer.direction = .left
         let rightSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
         rightSwipeRecognizer.direction = .right
+        let pinchRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(printPinchFactor(_:)))
+        
         
         self.view.addGestureRecognizer(leftSwipeRecognizer)
         self.view.addGestureRecognizer(rightSwipeRecognizer)
+        self.view.addGestureRecognizer(pinchRecognizer)
         checkCameraAuthorization { (error) in
             DispatchQueue.main.async {
                 self.keepLabelsUpToDate()
-                self.setupCaptureSession()
-                self.setupDevice()
-                self.setupPreviewLayer()
-                self.startRunningCaptureSession()
-                self.setupInputOutput()
+                self.setupCameras(telephoto: false)
                 self.toggleRawButton()
             }
         }
@@ -1046,6 +1094,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor , constant: -16).isActive = true
         photoCounterLabel.widthAnchor.constraint(equalToConstant: 100).isActive = true
         photoCounterLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        
     }
 }
 
