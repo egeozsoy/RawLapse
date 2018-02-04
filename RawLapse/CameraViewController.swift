@@ -353,6 +353,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
         }
         activateProgressBar(activeTimelapse: activeTimelapse)
+        
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        if UIDevice.current.batteryLevel < 0.05 && activeTimelapse == true {
+            stopTimeLapse()
+            showAlert(withTitle: "TimeLapse stopped", withMessage: "Because your battery is lower then %5")
+        }
     }
     
     func keepLabelsUpToDate(){
@@ -644,6 +650,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         shutterButton.tintColor = self.disabledColor
         Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
             do {
+                if self.images.count == 0 { self.shutterButton.tintColor = UIColor.white
+                    self.images.removeAll()
+                    self.resetParameters()
+                    return}
                 let firstImageData = try Data(contentsOf: self.images.first!)
                 let firstImage = UIImage(data: firstImageData)
                 guard let imageSize = firstImage?.size  else { self.images.removeAll();

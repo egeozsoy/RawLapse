@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "RawLapse/CameraViewController.swift"
-            timestampString = "539445561.482463"
+            timestampString = "539447589.115206"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "605"
-            endingLineNumber = "605"
+            startingLineNumber = "611"
+            endingLineNumber = "611"
             landmarkName = "activateProgressBar(activeTimelapse:)"
             landmarkType = "7">
          </BreakpointContent>
