@@ -106,6 +106,7 @@ class Hud: UIView {
         let y:Double = Double(view.safeAreaLayoutGuide.layoutFrame.minY + CGFloat(40))
         let frame = CGRect(x: x, y: y, width: width, height: height)
         let hudView = Hud(frame: frame)
+        
         //        hudView.setupInsideHud()
         hudView.isOpaque = false
         hudView.backgroundColor = UIColor.black

@@ -37,7 +37,7 @@ class IntroView: UIView {
         let introview = IntroView(frame: frame)
         //        hudView.setupInsideHud()
         introview.isOpaque = false
-        introview.backgroundColor = UIColor.red
+        introview.backgroundColor = UIColor.black
         introview.alpha = 0.6
         introview.layer.cornerRadius = 30
         introview.layer.masksToBounds = true

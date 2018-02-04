@@ -69,6 +69,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var rawsToProcess = [URL]()
     var jpegsToProcess = [Data]()
     var images = [URL]()
+    var mycircleBarObject: CircleProgressBar?
+    var mycircleBar : CircleProgressBar?
     
     //    initialize
     let ruleOfThirdsViewer: UIImageView  = {
@@ -350,6 +352,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 }
             }
         }
+        activateProgressBar(activeTimelapse: activeTimelapse)
     }
     
     func keepLabelsUpToDate(){
@@ -595,6 +598,29 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
+    func activateProgressBar(activeTimelapse active: Bool){
+        if active == false && photoCounter != 0{
+        let percantage = Float(self.processedPhotoCounter) / Float(self.photoCounter)
+        if self.mycircleBar == nil{
+            self.mycircleBarObject = CircleProgressBar(frame: self.view.frame)
+            self.mycircleBar  = self.mycircleBarObject?.circleProgressBar(inView: self.view, photoPercantage: 1)
+            self.view.addSubview(self.mycircleBar!)
+            self.mycircleBarObject?.shapeLayer.strokeEnd = CGFloat(percantage)
+        }
+        else{
+            self.mycircleBarObject?.shapeLayer.strokeEnd = CGFloat(percantage)
+        }
+        }
+        else{
+            if self.mycircleBar != nil {
+                mycircleBar?.removeFromSuperview()
+                mycircleBarObject?.removeFromSuperview()
+                mycircleBar = nil
+                mycircleBarObject = nil
+            }
+        }
+    }
+    
     func stopTimeLapse(){
         timelapseTimer?.invalidate();
         self.fixBrightness()
@@ -610,7 +636,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         //        callProcessQueue()
         
         toggleProximitySensor()
-        
+        mycircleBar?.removeFromSuperview()
         return ;
     }
     
@@ -800,6 +826,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         processedPhotoCounter += 1
         print("ProcessedCount \(processedPhotoCounter)")
         print("PhotoCount \(photoCounter)")
+        
     }
     
     //autorelease pool for memory management - because of a bug in UIImagejpegRep
