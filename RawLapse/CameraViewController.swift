@@ -39,7 +39,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var hudActive = false
     var hudView: Hud?
     
-//    introView
+    //    introView
     var introView: IntroView?
     
     //customSettings
@@ -76,6 +76,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     let ruleOfThirdsViewer: UIImageView  = {
         let imageviewer = UIImageView()
         var image = UIImage(named: "ruleOfThirdsGrid")
+        imageviewer.image = image
+        imageviewer.translatesAutoresizingMaskIntoConstraints = false
+        return imageviewer
+    }()
+    let sixteenByNineViewer: UIImageView  = {
+        let imageviewer = UIImageView()
+        var image = UIImage(named: "169")
         imageviewer.image = image
         imageviewer.translatesAutoresizingMaskIntoConstraints = false
         return imageviewer
@@ -148,11 +155,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func setupDevice(telephotoCamera telephoto:Bool){
         if telephoto{
-                let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInTelephotoCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
-                
-                let device = deviceDiscoverySession.devices.first
-                currentCamera = device
-            }
+            let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInTelephotoCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
+            
+            let device = deviceDiscoverySession.devices.first
+            currentCamera = device
+        }
         else{
             let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
             
@@ -167,12 +174,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         setupCameras(telephoto: telephoto)
     }
     
-    
     func setupInputOutput(){
         do{
             guard let currentCamera = self.currentCamera else {
                 self.shutterButton.tintColor = self.disabledColor
-                print(" no Change")
                 self.showAlert(withTitle: "No Camera", withMessage: "Make sure your device supports a camera")
                 return
             }
@@ -231,6 +236,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         cameraPreviewLayerFrame = CGRect(x: x, y: y, width: width , height: wantedHeight)
         setRuleOfThirdsViewer()
         setmiddleScreenViewer()
+        setSixteenByNineViewer()
     }
     
     func startRunningCaptureSession(){
@@ -283,7 +289,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         updateLabels()
     }
     
-    
     func drawExposureCircle( tapPoint : CGPoint){
         let circlePath = UIBezierPath(arcCenter: tapPoint, radius: CGFloat(30), startAngle: CGFloat(0), endAngle:CGFloat(Double.pi * 2), clockwise: true)
         
@@ -309,7 +314,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }) { (completed) in
             circleView.removeFromSuperview()
         }
-        
     }
     
     @objc func handleSettingTap(_ tap : UITapGestureRecognizer ){
@@ -404,7 +408,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func dimScreen(){
         if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
-            if settingsDic["Screen Dimming"] == true && forceLockScreenDimming == false {
+            if settingsDic[screenDimingStr] == true && forceLockScreenDimming == false {
                 UIScreen.main.brightness = 0.0
             }
         }
@@ -464,12 +468,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    
     //    get preview by putting your hand
     func toggleProximitySensor(){
         let device = UIDevice.current
         guard let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool] else{return}
-        if activeTimelapse==true && settingsDic["Screen Dimming"] == true {
+        if activeTimelapse==true && settingsDic[screenDimingStr] == true {
             device.isProximityMonitoringEnabled = true
             NotificationCenter.default.addObserver(self, selector: #selector(adjustBrightness), name: NSNotification.Name.UIDeviceProximityStateDidChange, object: device)
         }
@@ -538,7 +541,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         setupUI()
         startBrightness = UIScreen.main.brightness
         
-//        only show the firsttime
+        //        only show the firsttime
         if UserDefaults.standard.bool(forKey: "secondTime") == false{
             introView = IntroView.introview(inView: self.view)
             introView?.setupInsideView()
@@ -562,14 +565,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         dimScreen()
         
-        guard let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool] else{return}
-        if settingsDic["Create video"] == true{
-            createVideo = true
+        if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]
+        {
+            if settingsDic[createVideoStr] == true{
+                createVideo = true
+            }
+            else{
+                createVideo =  false
+            }
         }
         else{
-            createVideo =  false
-        }
-        
+            createVideo = false}
         
         if(activeTimelapse == false){
             
@@ -605,16 +611,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func activateProgressBar(activeTimelapse active: Bool){
         if active == false && photoCounter != 0{
-        let percantage = Float(self.processedPhotoCounter) / Float(self.photoCounter)
-        if self.mycircleBar == nil{
-            self.mycircleBarObject = CircleProgressBar(frame: self.view.frame)
-            self.mycircleBar  = self.mycircleBarObject?.circleProgressBar(inView: self.view, photoPercantage: 1)
-            self.view.addSubview(self.mycircleBar!)
-            self.mycircleBarObject?.shapeLayer.strokeEnd = CGFloat(percantage)
-        }
-        else{
-            self.mycircleBarObject?.shapeLayer.strokeEnd = CGFloat(percantage)
-        }
+            let percantage = Float(self.processedPhotoCounter) / Float(self.photoCounter)
+            if self.mycircleBar == nil{
+                self.mycircleBarObject = CircleProgressBar(frame: self.view.frame)
+                self.mycircleBar  = self.mycircleBarObject?.circleProgressBar(inView: self.view, photoPercantage: 1)
+                self.view.addSubview(self.mycircleBar!)
+                self.mycircleBarObject?.shapeLayer.strokeEnd = CGFloat(percantage)
+            }
+            else{
+                self.mycircleBarObject?.shapeLayer.strokeEnd = CGFloat(percantage)
+            }
         }
         else{
             if self.mycircleBar != nil {
@@ -627,19 +633,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     func stopTimeLapse(){
+        print("stop it")
+        activeTimelapse = false;
         timelapseTimer?.invalidate();
         self.fixBrightness()
-        activeTimelapse = false;
         if createVideo{
-        shutterButton.tintColor = UIColor.blue
+            shutterButton.tintColor = UIColor.blue
         }
         else{
             shutterButton.tintColor = UIColor.white
             self.resetParameters()
         }
-        //create video
-        //        callProcessQueue()
-        
         toggleProximitySensor()
         mycircleBar?.removeFromSuperview()
         return ;
@@ -647,7 +651,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func createVideoFromImages(){
         shutterButton.tintColor = self.disabledColor
-        Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (timer) in
             do {
                 if self.images.count == 0 { self.shutterButton.tintColor = UIColor.white
                     self.images.removeAll()
@@ -668,7 +671,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
             catch{
             }
-        })
     }
     
     var imageOrientation: AVCaptureVideoOrientation = .portrait
@@ -777,19 +779,21 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     
     func getAdjustedRaw(rawData : Data?) -> CIImage?{
         
-        guard let shadowHighlight = CIFilter(name: "CIHighlightShadowAdjust") else{
-            print("shadowHighlightNotFound")
-            return nil}
-        
+        guard let shadowHighlight = CIFilter(name: "CIHighlightShadowAdjust") else{print("shadowHighlightNotFound");return nil}
+        guard let contrastCurve = CIFilter(name: "CIColorControls") else{ print("CIColorControlsNotFound"); return nil}
         guard let rawImage = CIFilter(imageData: rawData, options: nil) else {return nil}
         
-//        maybe remove this?
-        rawImage.setValue(-0.3, forKey: kCIInputEVKey)
+        /* can be used to adjust raw exposure if needed
+         rawImage.setValue(-0.3, forKey: kCIInputEVKey) */
         rawImage.setValue(2, forKey: kCIInputBoostShadowAmountKey)
         shadowHighlight.setValue(rawImage.outputImage, forKey: kCIInputImageKey)
-        shadowHighlight.setValue(1, forKey: "inputHighlightAmount")
+        shadowHighlight.setValue(0.9, forKey: "inputHighlightAmount")
         shadowHighlight.setValue(0.3 , forKey: "inputShadowAmount")
-        rawImage.setValue(shadowHighlight, forKey: kCIInputLinearSpaceFilter)
+        contrastCurve.setValue(shadowHighlight, forKey: kCIInputImageKey)
+        contrastCurve.setValue(0.99, forKey: "inputContrast")
+        contrastCurve.setValue(1.1, forKey: "inputSaturation")
+        
+        rawImage.setValue(contrastCurve, forKey: kCIInputLinearSpaceFilter)
         
         return rawImage.outputImage
     }
@@ -834,9 +838,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         try myNewPhotoData?.write(to: myUrl)
         images.append(myUrl)
         processedPhotoCounter += 1
-        print("ProcessedCount \(processedPhotoCounter)")
-        print("PhotoCount \(photoCounter)")
-        
     }
     
     //autorelease pool for memory management - because of a bug in UIImagejpegRep
@@ -862,6 +863,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 }
             }
             shouldCreateVideo(&continueLoop)
+//            to avoid unnecessary loops
+            sleep(2)
         }
     }
     
@@ -885,8 +888,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
                 }
             }
             shouldCreateVideo(&continueLoop)
+            sleep(2)
         }
-        
     }
     
     func saveRawWithEmbeddedThumbnail(){
@@ -994,7 +997,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     func setRuleOfThirdsViewer(){
         
         if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
-            if settingsDic["ruleOfThirds"] == true {
+            if settingsDic[ruleOfThirds] == true {
                 self.view.addSubview(ruleOfThirdsViewer)
                 ruleOfThirdsViewer.heightAnchor.constraint(equalToConstant: cameraPreviewLayerFrame!.height ).isActive = true
                 ruleOfThirdsViewer.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
@@ -1007,10 +1010,26 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
+    func setSixteenByNineViewer(){
+        
+        if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
+            if settingsDic[sixteenByNine] == true {
+                self.view.addSubview(sixteenByNineViewer)
+                sixteenByNineViewer.heightAnchor.constraint(equalToConstant: cameraPreviewLayerFrame!.height ).isActive = true
+                sixteenByNineViewer.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
+                sixteenByNineViewer.leftAnchor.constraint(equalTo: self.view.leftAnchor).isActive = true
+                sixteenByNineViewer.rightAnchor.constraint(equalTo: self.view.rightAnchor).isActive = true
+            }
+            else {
+                sixteenByNineViewer.removeFromSuperview()
+            }
+        }
+    }
+    
     func setmiddleScreenViewer(){
         
         if let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool]{
-            if settingsDic["middleScreen"] == true {
+            if settingsDic[middleScreen] == true {
                 self.view.addSubview(middleScreenViewer)
                 middleScreenViewer.heightAnchor.constraint(equalToConstant: cameraPreviewLayerFrame!.height ).isActive = true
                 middleScreenViewer.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
@@ -1022,7 +1041,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
         }
     }
-    
     
     @objc func showSettingsPage(){
         let tablecontroller =  SettingsTableViewController()
@@ -1077,7 +1095,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         privacyPolicyButton?.setTitleColor(UIColor.white, for: .normal)
         privacyPolicyButton?.addTarget(self, action: #selector(showSettingsPage), for: .touchUpInside)
         privacyPolicyButton?.translatesAutoresizingMaskIntoConstraints = false
-        
     }
     
     func setupUI(){
@@ -1131,7 +1148,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         photoCounterLabel.bottomAnchor.constraint(equalTo: bottomBar.bottomAnchor , constant: -16).isActive = true
         photoCounterLabel.widthAnchor.constraint(equalToConstant: 100).isActive = true
         photoCounterLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        
     }
 }
 

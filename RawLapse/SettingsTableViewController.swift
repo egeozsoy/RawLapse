@@ -8,14 +8,17 @@
 
 import UIKit
 
+let cellId = "cellId"
+let screenDimingStr = "Screen Dimming"
+let ruleOfThirds = "ruleOfThirds"
+let sixteenByNine = "16-9 Ratio"
+let middleScreen = "middleScreen"
+let createVideoStr = "Create video"
+
 class SettingsTableViewController: UITableViewController {
     
-    let cellId = "cellId"
-    let screenDiming = "Screen Dimming"
-    let ruleOfThirds = "ruleOfThirds"
-    let middleScreen = "middleScreen"
-    let createVideo = "Create video"
-    lazy var settingsArray = [screenDiming, ruleOfThirds ,middleScreen , createVideo]
+    
+    lazy var settingsArray = [screenDimingStr, ruleOfThirds, sixteenByNine ,middleScreen , createVideoStr]
     lazy var settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String: Bool]
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,6 +44,7 @@ class SettingsTableViewController: UITableViewController {
             let delegate = UIApplication.shared.delegate as! AppDelegate
             delegate.cameraViewController.setRuleOfThirdsViewer()
             delegate.cameraViewController.setmiddleScreenViewer()
+            delegate.cameraViewController.setSixteenByNineViewer()
         }
     }
     

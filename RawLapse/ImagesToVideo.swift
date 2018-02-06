@@ -304,14 +304,13 @@ class VideoWriter {
         let verticalRatio = size.height / image.size.height
         let aspectRatio = max(horizontalRatio, verticalRatio) // ScaleAspectFill
         //        let aspectRatio = min(horizontalRatio, verticalRatio) // ScaleAspectFit
-        
         let newSize = CGSize(width: image.size.width * aspectRatio, height: image.size.height * aspectRatio)
         
-        let x = newSize.width < size.width ? (size.width - newSize.width) / 2 : 0
-        let y = newSize.height < size.height ? (size.height - newSize.height) / 2 : 0
-        
-        
-        context?.draw(newImage!, in: CGRect(x: x, y: y, width: newSize.width, height: newSize.height))
+        let x = CGFloat(-(newSize.width - size.width)/4)
+        let y = CGFloat(-(newSize.height - size.height)/4)
+        let newWidth = newSize.width - (newSize.width - size.width)/2
+        let newHeight = newSize.height - (newSize.height - size.height)/2
+        context?.draw(newImage!, in: CGRect(x: x, y: y, width: newWidth, height: newHeight))
         CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue: 0))
         
         return pixelBuffer
@@ -406,4 +405,5 @@ class VideoWriter {
         return pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: presentationTime)
     }
 }
+
 
