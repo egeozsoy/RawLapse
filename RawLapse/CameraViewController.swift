@@ -147,20 +147,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     func setupDevice(telephotoCamera telephoto:Bool){
-        if telephoto {
-            print("tel")
-            let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInTelephotoCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
+        if telephoto{
+                let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInTelephotoCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
+                
+                let device = deviceDiscoverySession.devices.first
+                currentCamera = device
+            }
+        else{
+            let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
             
             let device = deviceDiscoverySession.devices.first
             currentCamera = device
-            
-        }
-            
-        else{
-        let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera] , mediaType: AVMediaType.video, position: AVCaptureDevice.Position.back)
-        
-        let device = deviceDiscoverySession.devices.first
-        currentCamera = device
         }
     }
     
@@ -483,11 +480,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     func setupCameras(telephoto:Bool){
+        if AVCaptureDevice.default(.builtInDualCamera, for: AVMediaType.video, position: .back) != nil{
             self.setupCaptureSession()
             self.setupDevice(telephotoCamera: telephoto)
             self.setupPreviewLayer()
             self.startRunningCaptureSession()
             self.setupInputOutput()
+        }
     }
     
     var changedShortly = false
@@ -784,6 +783,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         
         guard let rawImage = CIFilter(imageData: rawData, options: nil) else {return nil}
         
+//        maybe remove this?
         rawImage.setValue(-0.3, forKey: kCIInputEVKey)
         rawImage.setValue(2, forKey: kCIInputBoostShadowAmountKey)
         shadowHighlight.setValue(rawImage.outputImage, forKey: kCIInputImageKey)

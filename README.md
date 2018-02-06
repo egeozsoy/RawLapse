@@ -16,6 +16,7 @@ The main features of the app are:
 - It displays current photo settings & amount of photos taken and to be taken.
 - Auto screen diming while recording a timelapse(and quick preview using the proximity sensor)
 - It saves all the photos as .dng to the photo library. This allows very quick and practical photo transfer with the iCloud Photo Library
+- Auto converts your raw files in device and creates a timelapse out of them. (much better then standard jpeg processing , but might have an impact on battery life)
 
 The main advantages of RawLapse over other timelapse apps are:
 
