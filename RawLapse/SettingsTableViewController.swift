@@ -14,11 +14,12 @@ let ruleOfThirds = "ruleOfThirds"
 let sixteenByNine = "16-9 Ratio"
 let middleScreen = "middleScreen"
 let createVideoStr = "Create video"
+let extremeDarknessStr = "Minimum Light Mod"
 
 class SettingsTableViewController: UITableViewController {
     
     
-    lazy var settingsArray = [screenDimingStr, ruleOfThirds, sixteenByNine ,middleScreen , createVideoStr]
+    lazy var settingsArray = [screenDimingStr, ruleOfThirds, sixteenByNine ,middleScreen , createVideoStr , extremeDarknessStr]
     lazy var settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String: Bool]
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,6 +46,7 @@ class SettingsTableViewController: UITableViewController {
             delegate.cameraViewController.setRuleOfThirdsViewer()
             delegate.cameraViewController.setmiddleScreenViewer()
             delegate.cameraViewController.setSixteenByNineViewer()
+            delegate.cameraViewController.extremeDarkness(turnOnExtreme: delegate.cameraViewController.getSettingFromSettingsDic(settingToGet: extremeDarknessStr))
         }
     }
     

@@ -168,12 +168,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
     }
     
-    func switchCamera(changeToTelephoto telephoto:Bool){
-        captureSession = AVCaptureSession()
-        cameraPreviewLayer?.removeFromSuperlayer()
-        setupCameras(telephoto: telephoto)
-    }
-    
     func setupInputOutput(){
         do{
             guard let currentCamera = self.currentCamera else {
@@ -197,6 +191,28 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             print(error)
         }
     }
+    
+    func extremeDarkness(turnOnExtreme active:Bool){
+        guard let currentCamera = self.currentCamera else {
+            self.shutterButton.tintColor = self.disabledColor
+            self.showAlert(withTitle: "No Camera", withMessage: "Make sure your device supports a camera")
+            return
+        }
+        try? currentCamera.lockForConfiguration()
+        
+        if active {
+            currentCamera.exposureMode = .custom
+            currentCamera.setExposureModeCustom(duration: currentCamera.activeFormat.maxExposureDuration, iso: currentCamera.activeFormat.maxISO, completionHandler: nil)
+        }
+        else{
+            currentCamera.setExposureModeCustom(duration: currentCamera.activeFormat.maxExposureDuration, iso: currentCamera.activeFormat.minISO, completionHandler: nil)
+            currentCamera.exposureMode = .continuousAutoExposure
+        }
+        currentCamera.unlockForConfiguration()
+        self.updateLabels()
+    }
+    
+    
     
     //    how to setup photoSettings
     func setupRawJpeg(rawSupported rawSupport: Bool){
@@ -276,7 +292,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             let x = tap.location(in: self.view).y / self.view.bounds.size.height
             let y = 1 - tap.location(in: self.view).x / self.view.bounds.size.width
             let point = CGPoint(x: x, y: y)
-            if(exposureNotLocked){
+            if(exposureNotLocked && currentCamera?.exposureMode != .custom){
                 currentCamera?.exposurePointOfInterest = point
                 currentCamera?.exposureMode = .continuousAutoExposure
             }
@@ -327,6 +343,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             print("no camera")
             return
         }
+        if currentCamera.exposureMode == .custom {return}
         try? currentCamera.lockForConfiguration()
         let newExposureBias = swipe.direction == .left ? currentCamera.exposureTargetBias - 1 : currentCamera.exposureTargetBias + 1
         if newExposureBias > -6 && newExposureBias < 6{
@@ -338,6 +355,14 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     //    helper Functions
+    func getSettingFromSettingsDic(settingToGet settingStr : String) -> Bool{
+        guard let settingsDic = UserDefaults.standard.dictionary(forKey: "settinsgDic") as? [String:Bool] else{return false}
+        if let settingBoolean = settingsDic[settingStr]{
+            return settingBoolean
+        }
+        return false
+    }
+    
     func updateLabels(){
         if let camera = currentCamera {
             settingsTextView.text = "ISO: \(Int(camera.iso))\nShutter: 1/\(Int(1 / (camera.exposureDuration).seconds))\nEV:\(camera.exposureTargetBias)"
@@ -355,11 +380,11 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         }
         activateProgressBar(activeTimelapse: activeTimelapse)
         
-        UIDevice.current.isBatteryMonitoringEnabled = true
-        if UIDevice.current.batteryLevel < 0.05 && activeTimelapse == true {
-            stopTimeLapse()
-            showAlert(withTitle: "TimeLapse stopped", withMessage: "Because your battery is lower then %5")
-        }
+//        UIDevice.current.isBatteryMonitoringEnabled = true
+//        if UIDevice.current.batteryLevel < 0.05 && activeTimelapse == true {
+//            stopTimeLapse()
+//            showAlert(withTitle: "TimeLapse stopped", withMessage: "Because your battery is lower then %5")
+//        }
     }
     
     func keepLabelsUpToDate(){
@@ -483,12 +508,20 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     func setupCameras(telephoto:Bool){
+        self.setupCaptureSession()
+        self.setupDevice(telephotoCamera: telephoto)
+        self.setupPreviewLayer()
+        self.startRunningCaptureSession()
+        self.setupInputOutput()
+        self.extremeDarkness(turnOnExtreme: getSettingFromSettingsDic(settingToGet: extremeDarknessStr))
+    }
+    
+    func switchCamera(changeToTelephoto telephoto:Bool){
+        
         if AVCaptureDevice.default(.builtInDualCamera, for: AVMediaType.video, position: .back) != nil{
-            self.setupCaptureSession()
-            self.setupDevice(telephotoCamera: telephoto)
-            self.setupPreviewLayer()
-            self.startRunningCaptureSession()
-            self.setupInputOutput()
+            captureSession = AVCaptureSession()
+            cameraPreviewLayer?.removeFromSuperlayer()
+            setupCameras(telephoto: telephoto)
         }
     }
     
@@ -521,7 +554,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         let rightSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwiping(_:)))
         rightSwipeRecognizer.direction = .right
         let pinchRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(printPinchFactor(_:)))
-        
         
         self.view.addGestureRecognizer(leftSwipeRecognizer)
         self.view.addGestureRecognizer(rightSwipeRecognizer)
