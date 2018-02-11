@@ -19,7 +19,7 @@ struct RenderSettings {
     var width: CGFloat = 3840
     var height: CGFloat = 2160
     var fps: Int32 = 24
-    var avCodecKey = AVVideoCodecType.hevc
+    var avCodecKey = AVVideoCodecType.h264
 //    give option for h264
     var videoFilename = "Timelapse1"
     var videoFilenameExt = "mp4"
@@ -282,7 +282,6 @@ class VideoWriter {
             newImage = image.cgImage
         }
         
-        
         var pixelBufferOut: CVPixelBuffer?
         
         let status = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pixelBufferPool, &pixelBufferOut)
@@ -320,19 +319,16 @@ class VideoWriter {
         self.renderSettings = renderSettings
     }
     
+    
     func start() {
         
-      
-        
+
         let avOutputSettings: [String: AnyObject] = [
-            AVVideoCodecKey: renderSettings.avCodecKey as AnyObject,
-            AVVideoWidthKey: NSNumber(value: Float(renderSettings.width)),
-            AVVideoHeightKey: NSNumber(value: Float(renderSettings.height))
-            ]
+        AVVideoCodecKey: AVVideoCodecType.h264 as AnyObject,
+        AVVideoWidthKey: NSNumber(value: Float(renderSettings.width)),
+        AVVideoHeightKey: NSNumber(value: Float(renderSettings.height))
+        ]
             
-            
-       
-        
         func createPixelBufferAdaptor() {
             let sourcePixelBufferAttributesDictionary = [
                 kCVPixelBufferPixelFormatTypeKey as String: NSNumber(value: kCVPixelFormatType_32ARGB),

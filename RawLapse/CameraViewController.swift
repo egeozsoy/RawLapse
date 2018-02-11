@@ -64,6 +64,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     var continuous: Bool?
     
     //    exportSettings
+    var successfullySavedPhotoCounter = 0
     var processedPhotoCounter = 0
     var createVideo = true
     var rawsToProcess = [URL]()
@@ -448,6 +449,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         rawsToProcess = []
         jpegsToProcess = []
         photoCounter = 0
+        successfullySavedPhotoCounter = 0
         processedPhotoCounter = 0
         images = []
     }
@@ -684,10 +686,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     func createVideoFromImages(){
         shutterButton.tintColor = self.disabledColor
             do {
-                if self.images.count == 0 { self.shutterButton.tintColor = UIColor.white
+                if self.images.count == 0 {
+                    self.shutterButton.tintColor = UIColor.white
                     self.images.removeAll()
                     self.resetParameters()
-                    return}
+                    return
+                }
                 let firstImageData = try Data(contentsOf: self.images.first!)
                 let firstImage = UIImage(data: firstImageData)
                 guard let imageSize = firstImage?.size  else { self.images.removeAll();
@@ -856,7 +860,8 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
     }
     
     fileprivate func shouldCreateVideo(_ continueLoop: inout Bool) {
-        if self.processedPhotoCounter == photoCounter && activeTimelapse == false && self.createVideo == true {
+        
+        if self.processedPhotoCounter == successfullySavedPhotoCounter && activeTimelapse == false && self.createVideo == true {
             continueLoop = false
             print("Start video creation")
             DispatchQueue.main.async {
@@ -877,7 +882,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         var continueLoop = true
         while continueLoop {
             while !rawsToProcess.isEmpty{
-                print("Waiting list : \(rawsToProcess.count)")
                 autoreleasepool{
                     let imageURL = rawsToProcess.removeFirst()
                     let imageData = try? Data(contentsOf: imageURL)
@@ -896,6 +900,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             }
             shouldCreateVideo(&continueLoop)
 //            to avoid unnecessary loops
+            print("looping")
             sleep(2)
         }
     }
@@ -904,7 +909,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
         var continueLoop = true
         while continueLoop {
             while !jpegsToProcess.isEmpty{
-                print("Waiting list : \(jpegsToProcess.count)")
                 let imageData = jpegsToProcess.removeFirst()
                 let testUI = UIImage(data: imageData)
                 if let jpegAsCIImage = CIImage(data: imageData){
@@ -946,10 +950,12 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate{
             creationOptions.shouldMoveFile = false
             
             if rawPreferred{
+                self.successfullySavedPhotoCounter += 1
                 creationRequet.addResource(with: .photo, fileURL: dngFileURL, options: creationOptions)
             }
             else{
                 self.jpegsToProcess.append(self.jpegPhotoData!)
+                self.successfullySavedPhotoCounter += 1
                 creationRequet.addResource(with: .photo, data: self.jpegPhotoData!, options: creationOptions)
             }
         }, completionHandler: nil)
